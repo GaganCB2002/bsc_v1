@@ -38,20 +38,28 @@ function atTime(date, hh, mm = 0) {
 }
 
 async function main() {
-  // 1. Ensure database exists
-  const maint = new Client({ connectionString: MAINT_URL })
-  await maint.connect()
-  const { rows } = await maint.query('SELECT 1 FROM pg_database WHERE datname = $1', [TARGET_DB])
-  if (rows.length === 0) {
-    await maint.query(`CREATE DATABASE "${TARGET_DB}"`)
-    console.log(`[database] Created database "${TARGET_DB}"`)
-  } else {
-    console.log(`[database] Database "${TARGET_DB}" already exists`)
+  const isCloud = /(supabase|pooler|rds\.amazonaws|render\.com)/i.test(process.env.DATABASE_URL || '')
+  const sslOption = isCloud ? { rejectUnauthorized: false } : undefined
+
+  // 1. Ensure database exists (skip for Supabase / hosted postgres)
+  if (!isCloud && TARGET_DB !== 'postgres') {
+    const maint = new Client({ connectionString: MAINT_URL, ssl: sslOption })
+    await maint.connect()
+    const { rows } = await maint.query('SELECT 1 FROM pg_database WHERE datname = $1', [TARGET_DB])
+    if (rows.length === 0) {
+      await maint.query(`CREATE DATABASE "${TARGET_DB}"`)
+      console.log(`[database] Created database "${TARGET_DB}"`)
+    } else {
+      console.log(`[database] Database "${TARGET_DB}" already exists`)
+    }
+    await maint.end()
   }
-  await maint.end()
 
   // 2. Apply schema
-  const db = new Client({ connectionString: process.env.DATABASE_URL || `postgresql://postgres:postgres@localhost:5432/${TARGET_DB}` })
+  const db = new Client({
+    connectionString: process.env.DATABASE_URL || `postgresql://postgres:postgres@localhost:5432/${TARGET_DB}`,
+    ssl: sslOption,
+  })
   await db.connect()
   const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8')
   await db.query(schema)
