@@ -274,7 +274,7 @@ export default function AppShell() {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="h-16 bg-white border-b border-border flex items-center gap-3 px-4 sm:px-6 sticky top-0 z-20 shadow-sm">
+        <header className="h-16 bg-white dark:bg-surface border-b border-border dark:border-border flex items-center gap-3 px-4 sm:px-6 sticky top-0 z-20 shadow-sm">
           {/* Mobile hamburger */}
           <button
             className="lg:hidden w-9 h-9 rounded-lg hover:bg-primary-faint flex items-center justify-center text-text-secondary transition-colors"
@@ -328,14 +328,14 @@ export default function AppShell() {
               >
                 <Bell className="w-[18px] h-[18px]" />
                 {unread > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-danger text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white">
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-danger text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white dark:ring-surface">
                     {unread > 9 ? '9+' : unread}
                   </span>
                 )}
               </button>
               {bellOpen && (
                 <div className="absolute right-0 mt-2 w-80 card shadow-2xl z-50 overflow-hidden animate-fade-in">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-slate-50">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-slate-50 dark:bg-surface-alt">
                     <div className="flex items-center gap-2">
                       <Bell className="w-3.5 h-3.5 text-text-muted" />
                       <p className="text-xs font-bold text-text">Notifications</p>
@@ -393,7 +393,7 @@ export default function AppShell() {
               </button>
               {profileOpen && (
                 <div className="absolute right-0 mt-2 w-60 card shadow-2xl z-50 overflow-hidden animate-fade-in">
-                  <div className="px-4 py-3.5 border-b border-border bg-gradient-to-r from-sky-50 to-blue-50">
+                  <div className="px-4 py-3.5 border-b border-border bg-gradient-to-r from-sky-50 to-blue-50 dark:from-surface-alt dark:to-surface">
                     <div className="flex items-center gap-3">
                       <span className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-500 to-blue-700 text-white text-sm font-bold flex items-center justify-center shadow-md">
                         {initials}
@@ -403,7 +403,7 @@ export default function AppShell() {
                         <p className="text-[11px] text-text-muted">{user.email}</p>
                       </div>
                     </div>
-                    <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full bg-white text-primary-deep text-[10px] font-bold border border-primary-light">
+                    <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full bg-white dark:bg-surface text-primary-deep text-[10px] font-bold border border-primary-light">
                       {user.roleName} {user.departmentName ? `· ${user.departmentName}` : ''}
                     </span>
                   </div>
@@ -418,7 +418,7 @@ export default function AppShell() {
                     )}
                   </div>
                   <div className="border-t border-border-light">
-                    <button onClick={handleLogout} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-danger hover:bg-red-50 transition-colors">
+                    <button onClick={handleLogout} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-danger hover:bg-red-50 dark:hover:bg-danger-bg transition-colors">
                       <LogOut className="w-4 h-4" /> Sign out
                     </button>
                   </div>
@@ -434,7 +434,7 @@ export default function AppShell() {
         </main>
 
         {/* Footer */}
-        <footer className="px-6 py-3 border-t border-border bg-white text-[11px] text-text-muted flex items-center justify-between flex-wrap gap-2">
+        <footer className="px-6 py-3 border-t border-border bg-white dark:bg-surface text-[11px] text-text-muted flex items-center justify-between flex-wrap gap-2">
           <span className="flex items-center gap-1.5">
             <LogoIcon size={14} />
             © {new Date().getFullYear()} BSC Exclusive — Process & Compliance Tracking

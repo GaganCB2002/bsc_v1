@@ -46,7 +46,7 @@ html.dark {
   --color-primary: #38bdf8;
   --color-primary-dark: #0ea5e9;
   --color-primary-deep: #0284c7;
-  --color-primary-light: #0c4a6e;
+  --color-primary-light: #1e3a5f;
   --color-primary-faint: #0f172a;
 
   --color-success: #22c55e;
@@ -60,8 +60,8 @@ html.dark {
 
   --color-surface: #1e293b;
   --color-surface-alt: #0f172a;
-  --color-background: #0f172a;
-  --color-border: #334155;
+  --color-background: #0b1120;
+  --color-border: #1e293b;
   --color-border-light: #1e293b;
   --color-text: #f1f5f9;
   --color-text-secondary: #94a3b8;
@@ -73,8 +73,9 @@ html.dark {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-html.dark ::-webkit-scrollbar-thumb { background: #475569; }
-html.dark ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+html.dark ::-webkit-scrollbar-track { background: #0b1120; }
+html.dark ::-webkit-scrollbar-thumb { background: #334155; }
+html.dark ::-webkit-scrollbar-thumb:hover { background: #475569; }
 
 .scrollbar-thin::-webkit-scrollbar { width: 4px; }
 .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
@@ -88,7 +89,7 @@ html.dark ::-webkit-scrollbar-thumb:hover { background: #64748b; }
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 html.dark .card {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 /* Buttons */
@@ -129,9 +130,9 @@ html.dark .card {
   background: var(--color-primary-faint);
 }
 .btn-danger { background: var(--color-danger); color: #fff; }
-.btn-danger:hover:not(:disabled) { background: #b91c1c; }
+.btn-danger:hover:not(:disabled) { opacity: 0.9; }
 .btn-ghost { background: transparent; color: var(--color-text-secondary); }
-.btn-ghost:hover:not(:disabled) { background: var(--color-primary-light); color: var(--color-primary-deep); }
+.btn-ghost:hover:not(:disabled) { background: var(--color-primary-faint); color: var(--color-primary); }
 .btn-sm { padding: 0.35rem 0.7rem; font-size: 0.75rem; }
 
 /* Inputs */
@@ -184,6 +185,7 @@ select.input { appearance: auto; }
   padding: 0.7rem 0.9rem;
   border-bottom: 1px solid var(--color-border-light);
   vertical-align: middle;
+  color: var(--color-text);
 }
 .table tbody tr { transition: background 0.15s ease; }
 .table tbody tr:hover { background: var(--color-primary-faint); }
@@ -211,14 +213,9 @@ select.input { appearance: auto; }
   from { opacity: 0; transform: translateX(10px); }
   to { opacity: 1; transform: translateX(0); }
 }
-@keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
 .animate-fade-in { animation: fadeInUp 0.3s ease both; }
 .animate-fade-in-fast { animation: fadeIn 0.2s ease both; }
 .animate-slide-in { animation: slideInRight 0.25s ease both; }
-.animate-spin-slow { animation: spin-slow 1s ease-in-out; }
 
 /* Leaflet */
 .leaflet-container { width: 100%; height: 100%; border-radius: 0.75rem; z-index: 0; }
@@ -226,4 +223,68 @@ select.input { appearance: auto; }
 /* Sidebar transition */
 aside {
   will-change: width, transform;
+}
+
+/* ── Dark mode global overrides ───────────────────────────── */
+html.dark body { background: #0b1120; }
+
+/* Fix hardcoded white backgrounds */
+html.dark .bg-white { background-color: #1e293b !important; }
+html.dark .bg-white\/80 { background-color: rgba(30, 41, 59, 0.8) !important; }
+html.dark .bg-white\/90 { background-color: rgba(30, 41, 59, 0.9) !important; }
+
+/* Fix hardcoded gray-50 backgrounds */
+html.dark .bg-gray-50 { background-color: #0f1729 !important; }
+html.dark .bg-slate-50 { background-color: #0f1729 !important; }
+html.dark .bg-slate-50\/50 { background-color: rgba(15, 23, 41, 0.5) !important; }
+
+/* Fix hardcoded text colors */
+html.dark .text-gray-900 { color: #f1f5f9 !important; }
+html.dark .text-gray-800 { color: #e2e8f0 !important; }
+html.dark .text-gray-700 { color: #cbd5e1 !important; }
+html.dark .text-slate-900 { color: #f1f5f9 !important; }
+html.dark .text-slate-800 { color: #e2e8f0 !important; }
+html.dark .text-slate-700 { color: #cbd5e1 !important; }
+
+/* Fix hardcoded border colors */
+html.dark .border-gray-200 { border-color: #1e293b !important; }
+html.dark .border-gray-100 { border-color: #1e293b !important; }
+html.dark .border-slate-200 { border-color: #1e293b !important; }
+html.dark .border-slate-100 { border-color: #1e293b !important; }
+html.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: #1e293b !important; }
+html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) { border-color: #1e293b !important; }
+
+/* Fix header specifically */
+html.dark header.bg-white { background-color: #0b1120 !important; }
+
+/* Fix footer */
+html.dark footer { background: #060a14 !important; }
+html.dark footer.bg-gray-900 { background: #060a14 !important; }
+
+/* Fix sidebar gradient */
+html.dark aside { background: linear-gradient(to bottom, #0b1120, #0f172a, #1e293b) !important; }
+
+/* Fix modal backgrounds */
+html.dark .fixed.inset-0 { color-scheme: dark; }
+
+/* Fix notification dropdown */
+html.dark .bg-slate-50 { background-color: #1e293b !important; }
+html.dark .bg-gradient-to-r { background: linear-gradient(to right, #0f172a, #1e293b) !important; }
+
+/* Fix specific hardcoded elements in AppShell */
+html.dark .bg-gradient-to-br.from-sky-500.to-blue-700 { background: linear-gradient(to bottom right, #0369a1, #1e40af) !important; }
+
+/* Session timeout banner */
+.session-timeout-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 99999;
+  background: #dc2626;
+  color: white;
+  text-align: center;
+  padding: 8px;
+  font-size: 13px;
+  font-weight: 600;
 }
