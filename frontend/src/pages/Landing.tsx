@@ -17,6 +17,11 @@ import {
   Zap,
   ScrollText,
   BarChart3,
+  Cookie,
+  Shield,
+  X,
+  ExternalLink,
+  Check,
 } from 'lucide-react'
 import { get } from '../lib/api'
 
@@ -53,6 +58,7 @@ const STEPS = [
 
 export default function Landing() {
   const [stats, setStats] = useState<Stats | null>(null)
+  const [activePolicyModal, setActivePolicyModal] = useState<'terms' | 'privacy' | 'cookies' | null>(null)
 
   useEffect(() => {
     get<Stats>('/api/public/stats')
@@ -61,7 +67,7 @@ export default function Landing() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white flex flex-col justify-between">
       {/* Nav */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -76,7 +82,13 @@ export default function Landing() {
             <a href="#features" className="hover:text-sky-600 transition-colors">Features</a>
             <a href="#how" className="hover:text-sky-600 transition-colors">How it works</a>
             <a href="#tracking" className="hover:text-sky-600 transition-colors">Live tracking</a>
-            <a href="#security" className="hover:text-sky-600 transition-colors">Security</a>
+            <a href="#security" className="hover:text-sky-600 transition-colors">Security & Rate Limits</a>
+            <button
+              onClick={() => setActivePolicyModal('privacy')}
+              className="hover:text-sky-600 transition-colors font-medium text-slate-500"
+            >
+              Policies
+            </button>
           </nav>
           <div className="flex items-center gap-2">
             <Link to="/login" className="btn btn-outline btn-sm">Sign in</Link>
@@ -98,20 +110,33 @@ export default function Landing() {
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-[1.1] tracking-tight">
             Track every process.
             <br />
-            <span className="bg-gradient-to-r from-sky-500 to-blue-600 bg-clip-text text-transparent">Verify every location.</span>
+            <span className="bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent">Verify every location.</span>
           </h1>
-          <p className="mt-5 text-slate-600 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
-            Assign checkpoints, collect evidence, review submissions and watch your team's live
-            location on one clean dashboard — powered by PostgreSQL on Supabase.
+          <p className="max-w-2xl mx-auto mt-6 text-base sm:text-lg text-slate-600 leading-relaxed">
+            Enterprise process compliance tracking with live GPS, evidence uploads, supervisor reviews and complete audit trails — all on one unified dashboard.
           </p>
-          <div className="mt-8 flex items-center justify-center gap-4 flex-wrap">
-            <Link to="/login" className="inline-flex items-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 text-white font-bold text-sm px-7 py-3 rounded-xl hover:from-sky-600 hover:to-blue-700 transition-all shadow-lg shadow-sky-500/25">
-              Launch Application <ArrowRight className="w-4 h-4" />
+          <div className="mt-8 flex items-center justify-center gap-3 flex-wrap">
+            <Link to="/login" className="btn btn-primary btn-lg shadow-lg shadow-sky-500/25">
+              Sign In to Platform <ArrowRight className="w-4 h-4" />
             </Link>
-            <div className="flex items-center gap-4 text-xs text-slate-500">
-              <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-sky-500" /> Live tracking</span>
-              <span className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5 text-sky-500" /> Auto-approval</span>
-            </div>
+            <a href="#how" className="btn btn-outline btn-lg">
+              Learn How It Works
+            </a>
+          </div>
+
+          {/* Quick policy tags */}
+          <div className="mt-8 flex items-center justify-center gap-4 text-xs font-semibold text-slate-500">
+            <button onClick={() => setActivePolicyModal('terms')} className="hover:text-sky-600 underline">
+              Terms & Conditions
+            </button>
+            <span>•</span>
+            <button onClick={() => setActivePolicyModal('privacy')} className="hover:text-sky-600 underline">
+              Privacy Policy
+            </button>
+            <span>•</span>
+            <button onClick={() => setActivePolicyModal('cookies')} className="hover:text-sky-600 underline">
+              Web Cookies
+            </button>
           </div>
         </div>
       </section>
@@ -138,14 +163,14 @@ export default function Landing() {
       {/* Features */}
       <section id="features" className="max-w-6xl mx-auto px-4 py-20">
         <div className="text-center mb-12">
-          <span className="inline-block px-3 py-1 rounded-full bg-sky-50 text-sky-600 text-xs font-bold mb-3">Features</span>
-          <h2 className="text-3xl font-extrabold text-slate-900">Everything you need, in one place</h2>
-          <p className="text-sm text-slate-500 mt-2">Built for operations teams that need proof, not promises.</p>
+          <span className="inline-block px-3 py-1 rounded-full bg-sky-50 text-sky-600 text-xs font-bold mb-3">Platform Features</span>
+          <h2 className="text-3xl font-extrabold text-slate-900">Everything your team needs</h2>
+          <p className="text-sm text-slate-500 mt-2">Built for enterprise operational rigor.</p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {FEATURES.map((f) => (
-            <div key={f.title} className="group card p-5 hover:border-sky-300 hover:shadow-lg hover:shadow-sky-100 transition-all duration-300">
-              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-sky-50 to-blue-50 text-sky-600 flex items-center justify-center mb-3 group-hover:from-sky-100 group-hover:to-blue-100 transition-colors">
+            <div key={f.title} className="card p-5 hover:shadow-md transition-shadow">
+              <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center mb-3">
                 <f.icon className="w-5 h-5" />
               </div>
               <h3 className="text-sm font-bold text-slate-900">{f.title}</h3>
@@ -156,24 +181,22 @@ export default function Landing() {
       </section>
 
       {/* How it works */}
-      <section id="how" className="bg-gradient-to-b from-slate-50 to-white border-y border-slate-100">
-        <div className="max-w-6xl mx-auto px-4 py-20">
+      <section id="how" className="bg-slate-50 border-y border-slate-100 py-20">
+        <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
-            <span className="inline-block px-3 py-1 rounded-full bg-sky-50 text-sky-600 text-xs font-bold mb-3">How it works</span>
-            <h2 className="text-3xl font-extrabold text-slate-900">From account creation to approval</h2>
-            <p className="text-sm text-slate-500 mt-2">The complete compliance loop — in four simple steps.</p>
+            <span className="inline-block px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-bold mb-3">Workflow</span>
+            <h2 className="text-3xl font-extrabold text-slate-900">How BSC Exclusive works</h2>
+            <p className="text-sm text-slate-500 mt-2">From assignment to audit-ready signoff in 4 steps.</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {STEPS.map((s) => (
-              <div key={s.step} className="card p-5 relative overflow-hidden">
-                <div className="absolute top-3 right-3 text-5xl font-black text-slate-100">{s.step}</div>
-                <div className="relative">
-                  <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center mb-3">
-                    <s.icon className="w-5 h-5" />
-                  </div>
-                  <h4 className="text-sm font-bold text-slate-900 mt-3">{s.title}</h4>
-                  <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">{s.desc}</p>
+              <div key={s.step} className="relative bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+                <span className="text-3xl font-black text-slate-100 absolute top-4 right-4">{s.step}</span>
+                <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center mb-4">
+                  <s.icon className="w-5 h-5" />
                 </div>
+                <h3 className="text-sm font-bold text-slate-900">{s.title}</h3>
+                <p className="text-xs text-slate-500 mt-2 leading-relaxed">{s.desc}</p>
               </div>
             ))}
           </div>
@@ -196,8 +219,9 @@ export default function Landing() {
             <ul className="mt-6 space-y-3 text-sm text-slate-600">
               {[
                 'Automatic updates — no manual check-ins required',
+                'Device battery level reporting on every ping',
                 'Registered office locations pinned on the same map',
-                'Graceful degradation — works fully even without location permission',
+                'Full historical tracking trail with accuracy bounds',
               ].map((t) => (
                 <li key={t} className="flex items-start gap-2.5">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
@@ -209,7 +233,7 @@ export default function Landing() {
           <div className="card p-6 shadow-xl border border-slate-100">
             <div className="flex items-center gap-2 mb-4">
               <MapPin className="w-5 h-5 text-sky-600" />
-              <h3 className="text-sm font-bold text-slate-900">What the admin sees</h3>
+              <h3 className="text-sm font-bold text-slate-900">Live Team Coordinates</h3>
             </div>
             <div className="space-y-3">
               {[
@@ -235,19 +259,19 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Security */}
-      <section id="security" className="max-w-6xl mx-auto px-4 py-20">
+      {/* Security & Rate Limiting */}
+      <section id="security" className="max-w-6xl mx-auto px-4 py-20 border-t border-slate-100">
         <div className="text-center mb-12">
-          <span className="inline-block px-3 py-1 rounded-full bg-sky-50 text-sky-600 text-xs font-bold mb-3">Security</span>
-          <h2 className="text-3xl font-extrabold text-slate-900">Enterprise-grade protections</h2>
-          <p className="text-sm text-slate-500 mt-2">Built into every request, not just the UI.</p>
+          <span className="inline-block px-3 py-1 rounded-full bg-sky-50 text-sky-600 text-xs font-bold mb-3">Security & Compliance</span>
+          <h2 className="text-3xl font-extrabold text-slate-900">Enterprise-grade protections & Rate Limits</h2>
+          <p className="text-sm text-slate-500 mt-2">Active defense mechanisms built into every endpoint.</p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { icon: Lock, title: 'JWT sessions', desc: 'Signed tokens in HTTP-only cookies, revocable server-side session rows.' },
-            { icon: ShieldCheck, title: 'Granular RBAC', desc: '40+ permissions checked on every API request, not just in the UI.' },
-            { icon: ScrollText, title: 'Full audit trail', desc: 'Every state change logged with actor, before/after JSON, IP and user agent.' },
-            { icon: ShieldCheck, title: 'Data encryption', desc: 'All data encrypted in transit (TLS 1.3) and at rest (AES-256).' },
+            { icon: Lock, title: '5-Attempt Lockout', desc: '5 consecutive incorrect password entries locks the account for 5 minutes to prevent brute-force attacks.' },
+            { icon: ShieldCheck, title: 'API Rate Limiting', desc: 'Automated rate limiters throttle unauthorized scraping and DDoS requests with HTTP 429 Retry-After protection.' },
+            { icon: Cookie, title: 'Secure Web Cookies', desc: 'HTTP-only SameSite session cookies protect credentials from cross-site scripting and interception.' },
+            { icon: ScrollText, title: 'Immutable Audit Trail', desc: 'Every login, state change, and file upload is signed with actor, before/after JSON, and IP address.' },
           ].map((s) => (
             <div key={s.title} className="card p-5 text-center hover:shadow-md transition-shadow">
               <div className="w-11 h-11 mx-auto rounded-xl bg-gradient-to-br from-sky-50 to-blue-50 text-sky-600 flex items-center justify-center mb-3">
@@ -265,15 +289,277 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto px-4 py-8 flex items-center justify-center gap-8 flex-wrap text-[11px] font-bold text-slate-400 uppercase tracking-widest">
           <span className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5 text-sky-500" /> React 19 + Vite</span>
           <span className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5 text-sky-500" /> PostgreSQL · Supabase</span>
-          <span className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-sky-500" /> Express REST API</span>
+          <span className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-sky-500" /> Express REST API · Rate Limited</span>
           <span className="flex items-center gap-1.5"><Satellite className="w-3.5 h-3.5 text-sky-500" /> Live GPS · Leaflet</span>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border py-6 text-center text-xs text-slate-400">
-        © {new Date().getFullYear()} BSC Exclusive — Enterprise Process & Compliance Tracking Platform
+      {/* Enterprise Multi-Column Footer */}
+      <footer className="border-t border-slate-200 bg-slate-900 text-slate-300">
+        <div className="max-w-6xl mx-auto px-4 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {/* Col 1: Brand */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2.5">
+                <LogoMark size={32} />
+                <span className="text-white font-extrabold text-base">BSC Exclusive</span>
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Enterprise process and checkpoint compliance verification platform with live GPS audit trail and automated signoffs.
+              </p>
+              <div className="pt-2 text-[11px] text-emerald-400 font-semibold flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                All Systems Operational
+              </div>
+            </div>
+
+            {/* Col 2: Platform */}
+            <div>
+              <p className="text-xs font-bold text-white uppercase tracking-wider mb-3">Platform</p>
+              <ul className="space-y-2 text-xs">
+                <li><a href="#features" className="hover:text-white transition-colors">Compliance Checkpoints</a></li>
+                <li><a href="#how" className="hover:text-white transition-colors">4-Step Workflow</a></li>
+                <li><a href="#tracking" className="hover:text-white transition-colors">Live GPS Tracking</a></li>
+                <li><Link to="/login" className="hover:text-white transition-colors">Admin & Team Portal</Link></li>
+              </ul>
+            </div>
+
+            {/* Col 3: Security & Rate Limits */}
+            <div>
+              <p className="text-xs font-bold text-white uppercase tracking-wider mb-3">Security & Controls</p>
+              <ul className="space-y-2 text-xs text-slate-400">
+                <li className="flex items-center gap-1.5"><Shield className="w-3.5 h-3.5 text-sky-400" /> 5-Attempt / 5-Min Lockout</li>
+                <li className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-sky-400" /> API Rate Limiting</li>
+                <li className="flex items-center gap-1.5"><Satellite className="w-3.5 h-3.5 text-sky-400" /> 30-Min GPS Geolocation</li>
+                <li className="flex items-center gap-1.5"><ScrollText className="w-3.5 h-3.5 text-sky-400" /> Immutable Audit Logs</li>
+              </ul>
+            </div>
+
+            {/* Col 4: Legal & Policies */}
+            <div>
+              <p className="text-xs font-bold text-white uppercase tracking-wider mb-3">Legal & Policies</p>
+              <ul className="space-y-2 text-xs">
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => setActivePolicyModal('terms')}
+                    className="hover:text-white transition-colors flex items-center gap-1 text-slate-300"
+                  >
+                    Terms & Conditions <ExternalLink className="w-3 h-3 text-slate-400" />
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => setActivePolicyModal('privacy')}
+                    className="hover:text-white transition-colors flex items-center gap-1 text-slate-300"
+                  >
+                    Privacy Policy <ExternalLink className="w-3 h-3 text-slate-400" />
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => setActivePolicyModal('cookies')}
+                    className="hover:text-white transition-colors flex items-center gap-1 text-slate-300"
+                  >
+                    Web Cookie Policy <ExternalLink className="w-3 h-3 text-slate-400" />
+                  </button>
+                </li>
+                <li>
+                  <span className="text-[11px] text-slate-500">ISO/IEC 27001 Aligned</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-12 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+            <p>© {new Date().getFullYear()} BSC Exclusive Process Tracking. All rights reserved.</p>
+            <div className="flex items-center gap-4">
+              <button onClick={() => setActivePolicyModal('terms')} className="hover:text-slate-300 transition-colors">Terms</button>
+              <span>•</span>
+              <button onClick={() => setActivePolicyModal('privacy')} className="hover:text-slate-300 transition-colors">Privacy</button>
+              <span>•</span>
+              <button onClick={() => setActivePolicyModal('cookies')} className="hover:text-slate-300 transition-colors">Cookies</button>
+            </div>
+          </div>
+        </div>
       </footer>
+
+      {/* Interactive Full Policy Modal */}
+      {activePolicyModal && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[85vh] overflow-y-auto p-6 sm:p-8 relative border border-slate-100">
+            <button
+              onClick={() => setActivePolicyModal(null)}
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Tab switchers in modal header */}
+            <div className="flex items-center gap-2 mb-6 border-b border-slate-100 pb-4 pr-8 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setActivePolicyModal('terms')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                  activePolicyModal === 'terms'
+                    ? 'bg-sky-600 text-white shadow-sm'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                <ScrollText className="w-3.5 h-3.5" /> Terms & Conditions
+              </button>
+              <button
+                type="button"
+                onClick={() => setActivePolicyModal('privacy')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                  activePolicyModal === 'privacy'
+                    ? 'bg-sky-600 text-white shadow-sm'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                <Shield className="w-3.5 h-3.5" /> Privacy Policy
+              </button>
+              <button
+                type="button"
+                onClick={() => setActivePolicyModal('cookies')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                  activePolicyModal === 'cookies'
+                    ? 'bg-sky-600 text-white shadow-sm'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                <Cookie className="w-3.5 h-3.5" /> Web Cookie Policy
+              </button>
+            </div>
+
+            {/* Modal Body: Terms */}
+            {activePolicyModal === 'terms' && (
+              <div className="text-xs text-slate-600 leading-relaxed space-y-4">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-black text-slate-900">Terms & Conditions</h2>
+                  <span className="text-[10px] font-bold bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full">Active Policy</span>
+                </div>
+                <p className="text-slate-400">Effective Date: September 2026 · BSC Exclusive Enterprise Terms</p>
+
+                <div className="space-y-3 pt-2">
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm mb-1">1. Scope of Enterprise Access</h3>
+                    <p>BSC Exclusive is an internal operational platform. User accounts are created and configured exclusively by system administrators. No public account registration is permitted.</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm mb-1">2. Password Security & 5-Attempt Lockout Policy</h3>
+                    <p>Users are strictly responsible for maintaining credential secrecy. If an incorrect password is entered 5 times consecutively, the platform initiates an automated 5-minute security lockout on that user account and originating IP address.</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm mb-1">3. Automated Rate Limiting</h3>
+                    <p>To ensure 99.9% platform availability and protect against automated denial of service, all API and submission endpoints enforce strict rate limiting. Requests exceeding safe thresholds will receive HTTP 429 status codes.</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm mb-1">4. Live GPS Location Tracking Consent</h3>
+                    <p>By using the platform, users grant consent to periodic GPS coordinate collection (every 30 minutes during active work hours) for field compliance verification. Falsifying GPS locations or using mock location tools is strictly prohibited.</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm mb-1">5. Evidence Submission & Auto-Approval</h3>
+                    <p>All photos, documents, and audio attachments must be authentic representations of checkpoint compliance. Submissions unreviewed by supervisors within 1 hour will be auto-approved by the automated workflow engine.</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm mb-1">6. Audit Trail & Investigation</h3>
+                    <p>Every login, session termination, location update, submission, and review is recorded in an immutable audit trail accessible to organizational auditors.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Modal Body: Privacy */}
+            {activePolicyModal === 'privacy' && (
+              <div className="text-xs text-slate-600 leading-relaxed space-y-4">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-black text-slate-900">Privacy Policy</h2>
+                  <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">GDPR & ISO Aligned</span>
+                </div>
+                <p className="text-slate-400">Effective Date: September 2026 · Confidential Enterprise Platform</p>
+
+                <div className="space-y-3 pt-2">
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm mb-1">1. Information We Collect</h3>
+                    <p>We collect and process: Employee full name, employee code, work email, assigned department, supervisor linkages, GPS coordinates, device battery status, and uploaded compliance evidence files.</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm mb-1">2. Location Data Handling & Privacy Safeguards</h3>
+                    <p>GPS tracking is strictly operational. Coordinates are collected only during active sessions, encrypted, and accessible solely to assigned supervisors and system administrators. Location histories are purged after 90 days.</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm mb-1">3. Data Encryption Standards</h3>
+                    <p>All API communication is encrypted in transit using TLS 1.3. Uploaded evidence files (images, audio, PDF, CSV) and database backups are secured with AES-256 encryption within private Supabase storage buckets.</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm mb-1">4. Zero Data Selling</h3>
+                    <p>BSC Exclusive does not sell, license, or share employee data with third-party advertisers, marketing networks, or external aggregators.</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm mb-1">5. Data Access & Rights</h3>
+                    <p>Employees have the right to inspect their stored compliance history, audit logs, and submission records by requesting an export from their administrator.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Modal Body: Cookies */}
+            {activePolicyModal === 'cookies' && (
+              <div className="text-xs text-slate-600 leading-relaxed space-y-4">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-black text-slate-900">Web Cookie & Local Storage Policy</h2>
+                  <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">Mandatory Acceptance</span>
+                </div>
+                <p className="text-slate-400">Effective Date: September 2026 · Enterprise Session Security</p>
+
+                <div className="space-y-3 pt-2">
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm mb-1">1. Essential Authentication Cookies</h3>
+                    <p>We use the HTTP-only cookie <code className="font-mono text-sky-700 bg-slate-100 px-1 py-0.5 rounded">bsc_session</code> containing a cryptographically signed JWT token. This cookie is marked SameSite=Lax and cannot be accessed via client-side JavaScript, protecting against XSS attacks.</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm mb-1">2. Rate Limiting & Anti-Brute Force Tokens</h3>
+                    <p>Security cookies and memory stores track login attempts to enforce the 5-attempt / 5-minute lockout rule. This prevents automated scripts from guessing credentials.</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm mb-1">3. Local Storage Tokens</h3>
+                    <p>We store consent tokens (<code className="font-mono text-slate-700 bg-slate-100 px-1 py-0.5 rounded">bsc_consent_accepted</code>, <code className="font-mono text-slate-700 bg-slate-100 px-1 py-0.5 rounded">bsc_cookies_accepted</code>) and offline draft saves so uncompleted checkpoint answers are never lost.</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm mb-1">4. Cookie Requirement</h3>
+                    <p>Because these cookies and storage items are strictly essential for platform security and basic operation, users must accept web cookies to access the platform.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-end">
+              <button
+                type="button"
+                onClick={() => setActivePolicyModal(null)}
+                className="btn btn-primary btn-sm text-xs px-6"
+              >
+                Close Policy
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

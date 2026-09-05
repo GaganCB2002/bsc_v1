@@ -74,12 +74,24 @@ export function TrackingProvider({ children }: { children: ReactNode }) {
         })
       )
 
+      let batteryLevel: number | null = null
+      if (typeof navigator !== 'undefined' && 'getBattery' in navigator) {
+        try {
+          const battery: any = await (navigator as any).getBattery()
+          if (battery && typeof battery.level === 'number') {
+            batteryLevel = Math.round(battery.level * 100)
+          }
+        } catch {
+          // getBattery not supported or denied
+        }
+      }
+
       const c = pos.coords
       await post('/api/tracking', {
         latitude: c.latitude,
         longitude: c.longitude,
         accuracy: c.accuracy,
-        batteryLevel: null,
+        batteryLevel,
         address: null,
       })
 
