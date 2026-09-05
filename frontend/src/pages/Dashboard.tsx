@@ -10,6 +10,8 @@ import {
   Satellite,
   ArrowRight,
   AlertTriangle,
+  MapPin,
+  Loader2,
 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from 'recharts'
 import { get } from '../lib/api'
@@ -80,10 +82,36 @@ export default function Dashboard() {
         title="My Dashboard"
         subtitle="Today's checkpoints, compliance summary and live activity"
         actions={
-          <span className="inline-flex items-center gap-1.5 bg-white/15 text-white px-3 py-1.5 rounded-full text-[11px] font-semibold">
-            <Satellite className="w-3.5 h-3.5 animate-pulse" />
-            {tracking.lastSync ? `Location synced ${timeAgo(tracking.lastSync.toISOString())}` : 'Waiting for GPS fix...'}
-          </span>
+          <div className="flex items-center gap-2">
+            {tracking.error ? (
+              <span className="inline-flex items-center gap-1.5 bg-red-500/20 text-red-100 px-3 py-1.5 rounded-full text-[11px] font-semibold">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                {tracking.error}
+              </span>
+            ) : tracking.lastSync ? (
+              <span className="inline-flex items-center gap-1.5 bg-white/15 text-white px-3 py-1.5 rounded-full text-[11px] font-semibold">
+                <Satellite className="w-3.5 h-3.5" />
+                Location synced {timeAgo(tracking.lastSync.toISOString())}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 bg-white/15 text-white px-3 py-1.5 rounded-full text-[11px] font-semibold">
+                <Satellite className="w-3.5 h-3.5 animate-pulse" />
+                Waiting for GPS fix...
+              </span>
+            )}
+            <button
+              onClick={() => tracking.syncNow()}
+              disabled={tracking.syncing}
+              className="inline-flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white px-3 py-1.5 rounded-full text-[11px] font-semibold transition-colors disabled:opacity-50"
+            >
+              {tracking.syncing ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <MapPin className="w-3.5 h-3.5" />
+              )}
+              Sync Now
+            </button>
+          </div>
         }
       />
 
