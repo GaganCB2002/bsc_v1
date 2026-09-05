@@ -368,8 +368,10 @@ export default function Landing() {
                   <div><h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">1. Data Collected</h3><p>Name, employee code, email, department, GPS coordinates, battery status, uploaded files.</p></div>
                   <div><h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">2. Location Data</h3><p>GPS collected during active sessions only. Encrypted. Accessible to supervisors and admins. Purged after 90 days.</p></div>
                   <div><h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">3. Encryption</h3><p>TLS 1.3 in transit. AES-256 for files. Supabase Storage buckets.</p></div>
-                  <div><h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">4. No Data Selling</h3><p>We do not sell or share employee data with third parties.</p></div>
-                  <div><h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">5. Data Access</h3><p>Employees can request an export of their data from their administrator.</p></div>
+                  <div><h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">4. No Tracking</h3><p>This platform uses NO Google Analytics, NO Facebook Pixel, NO third-party trackers, NO cookies for advertising. All data stays within the platform. No browsing behavior is tracked or sold.</p></div>
+                  <div><h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">5. No Data Selling</h3><p>We do not sell or share employee data with third parties. Period.</p></div>
+                  <div><h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">6. Data Access</h3><p>Employees can request an export of their data from their administrator.</p></div>
+                  <div><h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">7. Admin Visibility</h3><p>Administrators can see which users are active in the system. This is for security purposes only — no data leaves the platform.</p></div>
                 </div>
               </div>
             )}
@@ -382,7 +384,8 @@ export default function Landing() {
                   <div><h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">1. Session Cookie</h3><p><code className="font-mono text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">bsc_session</code> — HTTP-only JWT cookie. SameSite=None in production.</p></div>
                   <div><h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">2. Rate Limit Tokens</h3><p>Security cookies track login attempts for the 5-attempt lockout.</p></div>
                   <div><h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">3. Local Storage</h3><p>Consent tokens and draft saves stored in localStorage.</p></div>
-                  <div><h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">4. Requirement</h3><p>These are essential for security and operation. Acceptance is mandatory.</p></div>
+                  <div><h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">4. No Tracking Cookies</h3><p>We use NO Google Analytics, NO Facebook Pixel, NO advertising cookies, NO third-party trackers. Your browsing data is never tracked or sold.</p></div>
+                  <div><h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">5. Requirement</h3><p>These are essential for security and operation. Acceptance is mandatory.</p></div>
                 </div>
               </div>
             )}
