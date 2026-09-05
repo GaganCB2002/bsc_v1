@@ -1,6 +1,5 @@
-# Render Blueprint — deploy the backend as a Web Service.
-# Connect this repository's root to Render, or set "Root Directory" to backend/
-# and use backend/render.yaml instead.
+# Render Blueprint — Backend Web Service
+# Root Directory: backend/
 services:
   - type: web
     name: bsc-exclusive-tracking-api
@@ -10,21 +9,24 @@ services:
     buildCommand: npm install && npm run build
     startCommand: node dist/server.js
     healthCheckPath: /api/health
+    autoDeploy: true
     envVars:
       - key: NODE_VERSION
         value: 18.17.0
+      - key: NODE_ENV
+        value: production
       - key: DATABASE_URL
-        sync: false            # paste your Supabase Direct connection string in the Render dashboard
+        sync: false
       - key: SESSION_SECRET
-        generateValue: true    # Render generates a strong secret for you
+        generateValue: true
       - key: CORS_ORIGIN
-        sync: false            # your deployed frontend URL, e.g. https://my-app.vercel.app
+        sync: false
       - key: FILE_STORAGE_TYPE
         value: supabase
       - key: SUPABASE_URL
-        sync: false            # https://xxxx.supabase.co
+        sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
-        sync: false            # service_role key from Supabase (Settings → API)
+        sync: false
       - key: SUPABASE_BUCKET
         value: evidence
       - key: AUTO_APPROVE_HOURS

@@ -13,10 +13,10 @@ export default defineConfig({
   },
   build: {
     target: 'es2020',
+    outDir: 'dist',
+    sourcemap: false,
     rollupOptions: {
       output: {
-        // Vendor chunk splitting: framework code is cached separately from
-        // app code, so repeat visits only re-download what changed.
         manualChunks: {
           react: ['react', 'react-dom', 'react-router-dom'],
           charts: ['recharts'],

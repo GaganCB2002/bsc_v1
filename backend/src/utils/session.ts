@@ -25,7 +25,7 @@ export async function createSession(
   res.cookie(config.cookieName, token, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: false,
+    secure: process.env.NODE_ENV === 'production' || /supabase|rds|render/i.test(config.databaseUrl),
     path: '/',
     maxAge: config.sessionTtlDays * 24 * 3600 * 1000,
   })

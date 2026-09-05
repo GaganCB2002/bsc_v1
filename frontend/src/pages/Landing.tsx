@@ -31,6 +31,10 @@ interface Stats {
   approvalRate: number
 }
 
+function LogoMark({ size = 40, className = '' }: { size?: number; className?: string }) {
+  return <img src="/bsc-logo.png" alt="BSC Exclusive" width={size} height={size} className={`rounded-lg object-contain ${className}`} />
+}
+
 const FEATURES = [
   { icon: ListChecks, title: 'Checkpoint Compliance', desc: 'Daily, weekly, monthly and one-time process checkpoints with draft autosave and one-click submission.' },
   { icon: FileText, title: 'Evidence Uploads', desc: 'Attach images (JPG/PNG/WEBP/GIF), PDF documents, CSV files and audio recordings (MP3/WAV/M4A/OGG) to every report.' },
@@ -70,15 +74,13 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-white">
       {/* Nav */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-border">
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-blue-700 flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5 text-white" />
-            </div>
+          <div className="flex items-center gap-3">
+            <LogoMark size={36} />
             <div>
-              <p className="font-bold text-slate-900 leading-tight">BSC Exclusive</p>
-              <p className="text-[10px] text-sky-600 font-semibold tracking-wider">PROCESS TRACKING</p>
+              <p className="font-extrabold text-slate-900 leading-tight text-[15px]">BSC Exclusive</p>
+              <p className="text-[9px] text-sky-600 font-bold tracking-[0.2em] uppercase">Process Tracking</p>
             </div>
           </div>
           <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-600">
@@ -96,29 +98,35 @@ export default function Landing() {
       </header>
 
       {/* Hero */}
-      <section className="bg-gradient-to-br from-sky-50 via-blue-50 to-sky-100 border-b border-sky-100">
-        <div className="max-w-6xl mx-auto px-4 py-16 sm:py-20 text-center">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold mb-5">
+      <section className="relative bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 border-b border-sky-100 overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-sky-200/30 rounded-full blur-3xl" />
+          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl" />
+        </div>
+        <div className="relative max-w-6xl mx-auto px-4 py-16 sm:py-24 text-center">
+          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/80 backdrop-blur text-sky-700 text-xs font-bold mb-6 border border-sky-200 shadow-sm">
             <Satellite className="w-3.5 h-3.5" /> Enterprise Process & Compliance Platform
           </span>
-          <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 leading-tight tracking-tight">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-[1.1] tracking-tight">
             Track every process.
             <br />
-            <span className="text-sky-500">Verify every location.</span>
+            <span className="bg-gradient-to-r from-sky-500 to-blue-600 bg-clip-text text-transparent">Verify every location.</span>
           </h1>
-          <p className="mt-4 text-slate-600 max-w-2xl mx-auto text-sm sm:text-base">
-            Assign checkpoints, collect evidence, review submissions and watch your team&apos;s live
-            location on one clean dashboard — powered by PostgreSQL on Supabase, API on Render.
+          <p className="mt-5 text-slate-600 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
+            Assign checkpoints, collect evidence, review submissions and watch your team's live
+            location on one clean dashboard — powered by PostgreSQL on Supabase.
           </p>
-          <div className="mt-7 flex items-center justify-center gap-3 flex-wrap">
-            <Link to="/login" className="btn btn-primary px-5 py-2.5 text-sm">
+          <div className="mt-8 flex items-center justify-center gap-4 flex-wrap">
+            <Link to="/login" className="inline-flex items-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 text-white font-bold text-sm px-7 py-3 rounded-xl hover:from-sky-600 hover:to-blue-700 transition-all shadow-lg shadow-sky-500/25">
               Launch Application <ArrowRight className="w-4 h-4" />
             </Link>
-            <div className="flex items-center gap-1.5 text-xs text-slate-500">
-              <Clock className="w-3.5 h-3.5 text-sky-500" /> Live tracking every 30 minutes
-            </div>
-            <div className="flex items-center gap-1.5 text-xs text-slate-500">
-              <Zap className="w-3.5 h-3.5 text-sky-500" /> Auto-approval after 1 hour
+            <div className="flex items-center gap-4 text-xs text-slate-500">
+              <span className="flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-sky-500" /> Live tracking
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5 text-sky-500" /> Auto-approval
+              </span>
             </div>
           </div>
         </div>
@@ -126,7 +134,7 @@ export default function Landing() {
 
       {/* Live stats */}
       <section className="max-w-6xl mx-auto px-4 -mt-8 relative z-10">
-        <div className="card shadow-lg grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 divide-x divide-border-light">
+        <div className="card shadow-xl border border-slate-100 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 divide-x divide-slate-100">
           {[
             { label: 'Modules', value: stats?.modules ?? '—' },
             { label: 'Checkpoints', value: stats?.checkpoints ?? '—' },
@@ -137,22 +145,23 @@ export default function Landing() {
           ].map((s) => (
             <div key={s.label} className="px-4 py-5 text-center">
               <p className="text-2xl font-extrabold text-sky-600 tabular-nums">{s.value}</p>
-              <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wide">{s.label}</p>
+              <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wider">{s.label}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* Features */}
-      <section id="features" className="max-w-6xl mx-auto px-4 py-16">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl font-bold text-slate-900">Everything you need, in one place</h2>
+      <section id="features" className="max-w-6xl mx-auto px-4 py-20">
+        <div className="text-center mb-12">
+          <span className="inline-block px-3 py-1 rounded-full bg-sky-50 text-sky-600 text-xs font-bold mb-3">Features</span>
+          <h2 className="text-3xl font-extrabold text-slate-900">Everything you need, in one place</h2>
           <p className="text-sm text-slate-500 mt-2">Built for operations teams that need proof, not promises.</p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {FEATURES.map((f) => (
-            <div key={f.title} className="card p-5 hover:border-sky-300 hover:shadow-md transition-all">
-              <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center mb-3">
+            <div key={f.title} className="group card p-5 hover:border-sky-300 hover:shadow-lg hover:shadow-sky-100 transition-all duration-300">
+              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-sky-50 to-blue-50 text-sky-600 flex items-center justify-center mb-3 group-hover:from-sky-100 group-hover:to-blue-100 transition-colors">
                 <f.icon className="w-5 h-5" />
               </div>
               <h3 className="text-sm font-bold text-slate-900">{f.title}</h3>
@@ -163,36 +172,35 @@ export default function Landing() {
       </section>
 
       {/* How it works */}
-      <section id="how" className="bg-sky-50 border-y border-sky-100">
-        <div className="max-w-6xl mx-auto px-4 py-14">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold text-slate-900">How it works</h2>
-            <p className="text-sm text-slate-500 mt-2">From account creation to approval — the complete loop.</p>
+      <section id="how" className="bg-gradient-to-b from-slate-50 to-white border-y border-slate-100">
+        <div className="max-w-6xl mx-auto px-4 py-20">
+          <div className="text-center mb-12">
+            <span className="inline-block px-3 py-1 rounded-full bg-sky-50 text-sky-600 text-xs font-bold mb-3">How it works</span>
+            <h2 className="text-3xl font-extrabold text-slate-900">From account creation to approval</h2>
+            <p className="text-sm text-slate-500 mt-2">The complete compliance loop — in four simple steps.</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {STEPS.map((s) => (
-              <div key={s.step} className="card p-5">
-                <div className="flex items-center gap-3">
-                  <span className="text-3xl font-extrabold text-sky-200">{s.step}</span>
-                  <div className="w-9 h-9 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center">
+              <div key={s.step} className="card p-5 relative overflow-hidden">
+                <div className="absolute top-3 right-3 text-5xl font-black text-slate-100">{s.step}</div>
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center mb-3">
                     <s.icon className="w-5 h-5" />
                   </div>
+                  <h4 className="text-sm font-bold text-slate-900 mt-3">{s.title}</h4>
+                  <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">{s.desc}</p>
                 </div>
-                <h4 className="text-sm font-bold text-slate-900 mt-3">{s.title}</h4>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">{s.desc}</p>
               </div>
             ))}
           </div>
-          <div className="card mt-6 p-4 flex items-start gap-3 border-sky-200 bg-white">
-            <div className="w-9 h-9 rounded-lg bg-sky-600 text-white flex items-center justify-center shrink-0">
-              <UserPlus className="w-4.5 h-4.5 w-5 h-5" />
+          <div className="card mt-8 p-5 flex items-start gap-4 border-sky-200 bg-gradient-to-r from-sky-50 to-blue-50">
+            <div className="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-sky-500/25">
+              <UserPlus className="w-5 h-5" />
             </div>
             <div>
               <p className="text-sm font-bold text-slate-900">Account creation is admin-only</p>
               <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                There is no public registration or sign-up form. Only administrators (and users with the
-                <code className="mx-1 px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 font-mono text-[11px]">users:create</code>
-                permission) can create accounts — each with a role, department, employee code and unique username.
+                There is no public registration. Only administrators can create accounts — each with a role, department, employee code and unique username.
                 Admins can also deactivate accounts, reset passwords and view every session.
               </p>
             </div>
@@ -201,81 +209,78 @@ export default function Landing() {
       </section>
 
       {/* Live tracking */}
-      <section id="tracking" className="max-w-6xl mx-auto px-4 py-16">
-        <div className="grid lg:grid-cols-2 gap-10 items-center">
+      <section id="tracking" className="max-w-6xl mx-auto px-4 py-20">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold mb-4">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold mb-4 border border-emerald-200">
               <Satellite className="w-3.5 h-3.5" /> Live GPS Tracking
             </span>
-            <h2 className="text-2xl font-bold text-slate-900">Your team&apos;s location, updated every 30 minutes</h2>
-            <p className="text-sm text-slate-500 mt-3 leading-relaxed">
-              Every signed-in team member&apos;s browser reports its GPS coordinates to the server on a
-              <b className="text-slate-700"> 30-minute cycle</b> (plus once at login). The admin dashboard shows a
-              live map with every team member — online/offline status, coordinates, location accuracy,
-              battery level and the full location history per user.
+            <h2 className="text-3xl font-extrabold text-slate-900">Your team's location, updated every 30 minutes</h2>
+            <p className="text-sm text-slate-500 mt-4 leading-relaxed">
+              Every signed-in team member's browser reports its GPS coordinates on a
+              <b className="text-slate-700"> 30-minute cycle</b>. The admin dashboard shows a
+              live map with every team member — online/offline status, coordinates, accuracy, battery and full history.
             </p>
-            <ul className="mt-5 space-y-3 text-sm text-slate-600">
-              <li className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-sky-500 mt-0.5 shrink-0" />
-                Automatic updates — no manual check-ins required
-              </li>
-              <li className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-sky-500 mt-0.5 shrink-0" />
-                Registered office locations pinned on the same map
-              </li>
-              <li className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-sky-500 mt-0.5 shrink-0" />
-                Graceful degradation — the app works fully even without location permission
-              </li>
+            <ul className="mt-6 space-y-3 text-sm text-slate-600">
+              {[
+                'Automatic updates — no manual check-ins required',
+                'Registered office locations pinned on the same map',
+                'Graceful degradation — works fully even without location permission',
+              ].map((t) => (
+                <li key={t} className="flex items-start gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                  {t}
+                </li>
+              ))}
             </ul>
           </div>
-          <div className="card p-6">
+          <div className="card p-6 shadow-xl border border-slate-100">
             <div className="flex items-center gap-2 mb-4">
               <MapPin className="w-5 h-5 text-sky-600" />
               <h3 className="text-sm font-bold text-slate-900">What the admin sees</h3>
             </div>
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               {[
                 { name: 'John Doe', loc: '19.11360, 72.86970 · Andheri East, Mumbai', online: true, battery: '82%' },
                 { name: 'Sarah Lee', loc: '19.21830, 72.97810 · Ghodbunder Road, Thane', online: true, battery: '91%' },
                 { name: 'Jane Smith', loc: '19.03300, 73.02970 · Dombivli East, Thane', online: false, battery: '76%' },
               ].map((u) => (
-                <div key={u.name} className="flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl bg-surface-alt border border-border">
+                <div key={u.name} className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-sky-200 transition-colors">
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-slate-800">{u.name}</p>
                     <p className="text-[11px] text-slate-500 truncate">{u.loc}</p>
                   </div>
                   <div className="text-right shrink-0">
-                    <span className={`block text-[10px] font-bold ${u.online ? 'text-green-600' : 'text-slate-400'}`}>
+                    <span className={`block text-[10px] font-bold ${u.online ? 'text-emerald-600' : 'text-slate-400'}`}>
                       ● {u.online ? 'ONLINE' : 'OFFLINE'}
                     </span>
-                    <span className="block text-[10px] text-slate-500">{u.battery} battery</span>
+                    <span className="block text-[10px] text-slate-500">{u.battery}</span>
                   </div>
                 </div>
               ))}
             </div>
-            <p className="text-[11px] text-slate-400 mt-3 text-center">Live map · track history · accuracy radius</p>
           </div>
         </div>
       </section>
 
       {/* Roles */}
-      <section id="roles" className="bg-sky-50 border-y border-sky-100">
-        <div className="max-w-6xl mx-auto px-4 py-14">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold text-slate-900">Roles & permissions</h2>
-            <p className="text-sm text-slate-500 mt-2">Six built-in roles with granular, editable permissions.</p>
+      <section id="roles" className="bg-gradient-to-b from-slate-50 to-white border-y border-slate-100">
+        <div className="max-w-6xl mx-auto px-4 py-20">
+          <div className="text-center mb-12">
+            <span className="inline-block px-3 py-1 rounded-full bg-sky-50 text-sky-600 text-xs font-bold mb-3">Roles & Permissions</span>
+            <h2 className="text-3xl font-extrabold text-slate-900">Six built-in roles</h2>
+            <p className="text-sm text-slate-500 mt-2">Granular, editable permissions for every team member.</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {ROLES.map((r) => (
-              <div key={r.role} className="card p-5">
+              <div key={r.role} className="card p-5 hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-2.5">
-                  <span className={`${r.color} text-white text-[10px] font-extrabold px-2.5 py-1 rounded-lg tracking-wide`}>
+                  <span className={`${r.color} text-white text-[10px] font-extrabold px-3 py-1 rounded-lg tracking-wide`}>
                     {r.role}
                   </span>
                   {r.role === 'ADMIN' && <KeyRound className="w-3.5 h-3.5 text-sky-500" />}
                 </div>
-                <p className="text-xs text-slate-500 mt-2.5 leading-relaxed">{r.desc}</p>
+                <p className="text-xs text-slate-500 mt-3 leading-relaxed">{r.desc}</p>
               </div>
             ))}
           </div>
@@ -283,10 +288,11 @@ export default function Landing() {
       </section>
 
       {/* Security */}
-      <section id="security" className="max-w-6xl mx-auto px-4 py-16">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl font-bold text-slate-900">Security first</h2>
-          <p className="text-sm text-slate-500 mt-2">Enterprise-grade protections built into every request.</p>
+      <section id="security" className="max-w-6xl mx-auto px-4 py-20">
+        <div className="text-center mb-12">
+          <span className="inline-block px-3 py-1 rounded-full bg-sky-50 text-sky-600 text-xs font-bold mb-3">Security</span>
+          <h2 className="text-3xl font-extrabold text-slate-900">Enterprise-grade protections</h2>
+          <p className="text-sm text-slate-500 mt-2">Built into every request, not just the UI.</p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
@@ -295,8 +301,8 @@ export default function Landing() {
             { icon: ShieldCheck, title: 'Granular RBAC', desc: '40+ permissions checked on every API request, not just in the UI.' },
             { icon: ScrollText, title: 'Full audit trail', desc: 'Every state change logged with actor, before/after JSON, IP and user agent.' },
           ].map((s) => (
-            <div key={s.title} className="card p-5 text-center">
-              <div className="w-10 h-10 mx-auto rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center mb-3">
+            <div key={s.title} className="card p-5 text-center hover:shadow-md transition-shadow">
+              <div className="w-11 h-11 mx-auto rounded-xl bg-gradient-to-br from-sky-50 to-blue-50 text-sky-600 flex items-center justify-center mb-3">
                 <s.icon className="w-5 h-5" />
               </div>
               <h3 className="text-sm font-bold text-slate-900">{s.title}</h3>
@@ -307,24 +313,24 @@ export default function Landing() {
       </section>
 
       {/* Demo accounts */}
-      <section className="max-w-6xl mx-auto px-4 pb-16">
-        <div className="card p-6 sm:p-8">
-          <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
+      <section className="max-w-6xl mx-auto px-4 pb-20">
+        <div className="card p-6 sm:p-8 shadow-xl border border-slate-100">
+          <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
             <div>
-              <h2 className="text-lg font-bold text-slate-900">Try it now with demo accounts</h2>
+              <h2 className="text-xl font-extrabold text-slate-900">Try it now with demo accounts</h2>
               <p className="text-xs text-slate-500 mt-1">Accounts are created only by administrators — use these seeded logins to explore every role.</p>
             </div>
             <Link to="/login" className="btn btn-primary">Sign in <ArrowRight className="w-4 h-4" /></Link>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {[
-              { role: 'Admin', user: 'admin', pass: 'Admin@123456', tone: 'bg-sky-100 text-sky-700' },
-              { role: 'Supervisor', user: 'jane.smith', pass: 'Supervisor@123', tone: 'bg-cyan-100 text-cyan-700' },
-              { role: 'Manager', user: 'mike.ross', pass: 'Manager@123', tone: 'bg-blue-100 text-blue-700' },
-              { role: 'User', user: 'john.doe', pass: 'User@123456', tone: 'bg-slate-100 text-slate-700' },
+              { role: 'Admin', user: 'admin', pass: 'Admin@123456', tone: 'bg-sky-100 text-sky-700 border-sky-200' },
+              { role: 'Supervisor', user: 'jane.smith', pass: 'Supervisor@123', tone: 'bg-cyan-100 text-cyan-700 border-cyan-200' },
+              { role: 'Manager', user: 'mike.ross', pass: 'Manager@123', tone: 'bg-blue-100 text-blue-700 border-blue-200' },
+              { role: 'User', user: 'john.doe', pass: 'User@123456', tone: 'bg-slate-100 text-slate-700 border-slate-200' },
             ].map((d) => (
-              <div key={d.user} className="rounded-xl border border-border p-4 text-center">
-                <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${d.tone}`}>{d.role}</span>
+              <div key={d.user} className={`rounded-xl border p-4 text-center ${d.tone} hover:shadow-md transition-shadow`}>
+                <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-white/60">{d.role}</span>
                 <p className="text-sm font-mono font-bold text-slate-800 mt-2">{d.user}</p>
                 <p className="text-[11px] font-mono text-slate-500">{d.pass}</p>
               </div>
@@ -334,25 +340,31 @@ export default function Landing() {
       </section>
 
       {/* CTA */}
-      <section className="max-w-6xl mx-auto px-4 pb-16">
-        <div className="bg-gradient-to-br from-sky-500 to-blue-700 rounded-2xl p-10 sm:p-14 text-white shadow-xl text-center">
-          <MapPin className="w-8 h-8 mx-auto opacity-80" />
-          <h2 className="text-2xl font-bold mt-3">Ready to track your team in real time?</h2>
-          <p className="text-sm text-sky-100 mt-2 max-w-xl mx-auto">
-            Sign in with your company credentials and complete today&apos;s checkpoints.
-          </p>
-          <Link to="/login" className="inline-flex items-center gap-2 mt-6 bg-white text-sky-700 font-bold text-sm px-6 py-2.5 rounded-lg hover:bg-sky-50 transition-colors">
-            Sign in now <ArrowRight className="w-4 h-4" />
-          </Link>
+      <section className="max-w-6xl mx-auto px-4 pb-20">
+        <div className="bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-700 rounded-2xl p-10 sm:p-14 text-white shadow-2xl shadow-blue-500/20 text-center relative overflow-hidden">
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
+            <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
+          </div>
+          <div className="relative">
+            <MapPin className="w-8 h-8 mx-auto opacity-80" />
+            <h2 className="text-2xl sm:text-3xl font-extrabold mt-3">Ready to track your team in real time?</h2>
+            <p className="text-sm text-sky-100 mt-3 max-w-xl mx-auto">
+              Sign in with your company credentials and complete today's checkpoints.
+            </p>
+            <Link to="/login" className="inline-flex items-center gap-2 mt-7 bg-white text-sky-700 font-bold text-sm px-7 py-3 rounded-xl hover:bg-sky-50 transition-colors shadow-lg">
+              Sign in now <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* Tech stack */}
-      <section className="border-t border-border bg-surface-alt">
+      <section className="border-t border-border bg-slate-50">
         <div className="max-w-6xl mx-auto px-4 py-8 flex items-center justify-center gap-8 flex-wrap text-[11px] font-bold text-slate-400 uppercase tracking-widest">
           <span className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5 text-sky-500" /> React 19 + Vite</span>
           <span className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5 text-sky-500" /> PostgreSQL · Supabase</span>
-          <span className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-sky-500" /> Express REST API · Render</span>
+          <span className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-sky-500" /> Express REST API</span>
           <span className="flex items-center gap-1.5"><Satellite className="w-3.5 h-3.5 text-sky-500" /> Live GPS · Leaflet</span>
         </div>
       </section>
