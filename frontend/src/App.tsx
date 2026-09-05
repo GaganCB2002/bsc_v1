@@ -37,6 +37,7 @@ const SupervisorProjects = lazy(() => import('./pages/supervisor/SupervisorProje
 const SupervisorActivity = lazy(() => import('./pages/supervisor/SupervisorActivity'))
 const SupervisorProfile = lazy(() => import('./pages/supervisor/SupervisorProfile'))
 const SupervisorReports = lazy(() => import('./pages/supervisor/SupervisorReports'))
+const Chat = lazy(() => import('./pages/Chat'))
 
 function PageLoader() {
   return (
@@ -89,6 +90,8 @@ export default function App() {
         <Route path="/reports" element={<Reports />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/chat" element={<Chat />} />
+        <Route path="/chat/:conversationId" element={<Chat />} />
 
         <Route
           path="/admin"

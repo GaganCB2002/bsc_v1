@@ -18,6 +18,7 @@ import notificationsRoutes from './routes/notifications.routes.js'
 import trackingRoutes from './routes/tracking.routes.js'
 import adminRoutes from './routes/admin.routes.js'
 import supervisorRoutes from './routes/supervisor.routes.js'
+import chatRoutes from './routes/chat.routes.js'
 import { ping } from './db.js'
 import { apiRateLimiter } from './middleware/rateLimit.js'
 
@@ -73,6 +74,7 @@ export function createApp() {
   app.use('/api/notifications', notificationsRoutes)
   app.use('/api/tracking', trackingRoutes)
   app.use('/api/supervisor', supervisorRoutes)
+  app.use('/api/chat', chatRoutes)
   app.use('/api/admin', adminRoutes)
 
   // 404

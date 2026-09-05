@@ -31,6 +31,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   ChevronLeft,
+  MessageSquare,
 } from 'lucide-react'
 import { useAuth, can } from '../lib/auth'
 import { useTracking } from '../lib/tracking'
@@ -47,6 +48,7 @@ interface NavItem {
 const USER_NAV: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/modules', label: 'My Modules', icon: FolderOpen },
+  { to: '/chat', label: 'Messages', icon: MessageSquare },
   { to: '/history', label: 'My History', icon: History },
   { to: '/calendar', label: 'Calendar', icon: CalendarDays },
   { to: '/reports', label: 'Reports', icon: FileBarChart },
@@ -54,6 +56,7 @@ const USER_NAV: NavItem[] = [
 
 const SUPERVISOR_NAV: NavItem[] = [
   { to: '/supervisor', label: 'Team Dashboard', icon: LayoutDashboard },
+  { to: '/chat', label: 'Messages', icon: MessageSquare },
   { to: '/supervisor/approvals', label: 'Approvals', icon: ClipboardCheck },
   { to: '/supervisor/employees', label: 'Employees', icon: Users },
   { to: '/supervisor/departments', label: 'Departments', icon: Building2 },
@@ -64,6 +67,7 @@ const SUPERVISOR_NAV: NavItem[] = [
 
 const ADMIN_NAV: NavItem[] = [
   { to: '/admin', label: 'Admin Dashboard', icon: LayoutGrid },
+  { to: '/chat', label: 'Messages', icon: MessageSquare },
   { to: '/admin/tracking', label: 'Live Tracking', icon: Satellite },
   { to: '/admin/users', label: 'Users', icon: Users },
   { to: '/admin/roles', label: 'Roles & Permissions', icon: ShieldCheck },
