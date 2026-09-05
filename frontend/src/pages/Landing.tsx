@@ -17,7 +17,6 @@ import {
   Zap,
   ScrollText,
   BarChart3,
-  AlertTriangle,
 } from 'lucide-react'
 import { get } from '../lib/api'
 
@@ -52,15 +51,6 @@ const STEPS = [
   { step: '04', icon: CheckCircle2, title: 'Review, approve or auto-approve', desc: 'Supervisors approve or reject with comments. If nobody acts within 1 hour, the system auto-approves.' },
 ]
 
-const RATE_LIMITS = [
-  { endpoint: 'Authentication', limit: '10 requests / minute', desc: 'Login, logout, password reset' },
-  { endpoint: 'API Requests', limit: '100 requests / minute', desc: 'General data access and queries' },
-  { endpoint: 'File Uploads', limit: '10 uploads / minute', desc: 'Evidence and document uploads' },
-  { endpoint: 'GPS Tracking', limit: '1 update / 30 minutes', desc: 'Location sync frequency' },
-  { endpoint: 'Submissions', limit: '20 requests / minute', desc: 'Checkpoint submissions and edits' },
-  { endpoint: 'Password Reset', limit: '5 requests / hour', desc: 'Account recovery attempts' },
-]
-
 export default function Landing() {
   const [stats, setStats] = useState<Stats | null>(null)
 
@@ -87,7 +77,6 @@ export default function Landing() {
             <a href="#how" className="hover:text-sky-600 transition-colors">How it works</a>
             <a href="#tracking" className="hover:text-sky-600 transition-colors">Live tracking</a>
             <a href="#security" className="hover:text-sky-600 transition-colors">Security</a>
-            <a href="#limits" className="hover:text-sky-600 transition-colors">Limits</a>
           </nav>
           <div className="flex items-center gap-2">
             <Link to="/login" className="btn btn-outline btn-sm">Sign in</Link>
@@ -246,31 +235,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Rate Limits */}
-      <section id="limits" className="bg-gradient-to-b from-slate-50 to-white border-y border-slate-100">
-        <div className="max-w-6xl mx-auto px-4 py-20">
-          <div className="text-center mb-12">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold mb-3 border border-amber-200">
-              <AlertTriangle className="w-3.5 h-3.5" /> Rate Limits
-            </span>
-            <h2 className="text-3xl font-extrabold text-slate-900">API Usage Limits</h2>
-            <p className="text-sm text-slate-500 mt-2">To ensure fair usage and platform stability, the following rate limits apply.</p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {RATE_LIMITS.map((r) => (
-              <div key={r.endpoint} className="card p-5 hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-2 mb-2">
-                  <Zap className="w-4 h-4 text-amber-500" />
-                  <h3 className="text-sm font-bold text-slate-900">{r.endpoint}</h3>
-                </div>
-                <p className="text-lg font-extrabold text-amber-600">{r.limit}</p>
-                <p className="text-xs text-slate-500 mt-1">{r.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Security */}
       <section id="security" className="max-w-6xl mx-auto px-4 py-20">
         <div className="text-center mb-12">
@@ -293,26 +257,6 @@ export default function Landing() {
               <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">{s.desc}</p>
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="max-w-6xl mx-auto px-4 pb-20">
-        <div className="bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-700 rounded-2xl p-10 sm:p-14 text-white shadow-2xl shadow-blue-500/20 text-center relative overflow-hidden">
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-            <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
-          </div>
-          <div className="relative">
-            <MapPin className="w-8 h-8 mx-auto opacity-80" />
-            <h2 className="text-2xl sm:text-3xl font-extrabold mt-3">Ready to track your team in real time?</h2>
-            <p className="text-sm text-sky-100 mt-3 max-w-xl mx-auto">
-              Sign in with your company credentials and complete today's checkpoints.
-            </p>
-            <Link to="/login" className="inline-flex items-center gap-2 mt-7 bg-white text-sky-700 font-bold text-sm px-7 py-3 rounded-xl hover:bg-sky-50 transition-colors shadow-lg">
-              Sign in now <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
         </div>
       </section>
 
