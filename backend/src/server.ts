@@ -1,13 +1,18 @@
 import { createApp } from './app.js'
 import { config } from './config.js'
-import { ping } from './db.js'
+import { pingWithRetry } from './db.js'
 import { startAutoApprovalJob } from './jobs/autoApproval.js'
 
 async function main() {
-  const dbOk = await ping()
+  console.log(`[server] Starting BSC Exclusive Tracking API...`)
+  console.log(`[server] NODE_ENV=${process.env.NODE_ENV || 'development'}`)
+  console.log(`[server] DATABASE_URL is ${config.databaseUrl ? 'set' : 'NOT SET'}`)
+
+  const dbOk = await pingWithRetry(5, 3000)
   if (!dbOk) {
-    console.error('[server] Cannot reach the database. Check DATABASE_URL in backend/.env')
-    console.error('[server] Tip: run `npm run init` in the database folder first.')
+    console.error('[server] FATAL: Could not connect to the database after 5 attempts.')
+    console.error('[server] Check that DATABASE_URL is set correctly in your Render environment.')
+    console.error('[server] In Render dashboard: your service → Environment → add/set DATABASE_URL')
     process.exit(1)
   }
   console.log('[server] Database connection OK')

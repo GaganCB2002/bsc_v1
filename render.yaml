@@ -1,13 +1,12 @@
 # Render Blueprint — Backend Web Service
-# Root Directory: backend/
 services:
   - type: web
     name: bsc-exclusive-tracking-api
     runtime: node
     rootDir: backend
     plan: free
-    buildCommand: npm install && npm run build
-    startCommand: node dist/server.js
+    buildCommand: cd backend && npm install && npm run build
+    startCommand: cd backend && node dist/server.js
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:
