@@ -19,6 +19,7 @@ import trackingRoutes from './routes/tracking.routes.js'
 import adminRoutes from './routes/admin.routes.js'
 import supervisorRoutes from './routes/supervisor.routes.js'
 import { ping } from './db.js'
+import { apiRateLimiter } from './middleware/rateLimit.js'
 
 fs.mkdirSync(config.uploadDir, { recursive: true })
 
@@ -55,6 +56,9 @@ export function createApp() {
     const dbOk = await ping()
     res.json({ status: dbOk ? 'ok' : 'degraded', database: dbOk, uptime: process.uptime() })
   })
+
+  // Global rate limiter for API routes (protects against scrapers and DDoS)
+  app.use('/api', apiRateLimiter)
 
   app.use('/api/auth', authRoutes)
   app.use('/api/public', publicRoutes)

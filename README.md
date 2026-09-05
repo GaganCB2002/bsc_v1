@@ -1,55 +1,131 @@
-# BSC Exclusive Tracking — Full-Stack Platform
+<div align="center">
 
-> Enterprise Process & Compliance Tracking with Live GPS, Evidence Uploads, Supervisor Approvals and Complete Audit Trails.
+<img src="frontend/public/bsc-logo.png" alt="BSC Logo" width="120" style="filter: drop-shadow(0 0 20px rgba(14,165,233,0.4));" />
 
----
+# <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Bar%20Chart.png" alt="BSC" width="40"/> BSC Exclusive Tracking
 
-## Table of Contents
+### Enterprise Process & Compliance Tracking Platform
 
-- [Overview](#overview)
-- [Architecture](#architecture)
-- [Tech Stack](#tech-stack)
-- [Features](#features)
-- [Project Structure](#project-structure)
-- [Flow Diagrams](#flow-diagrams)
-- [Quick Start](#quick-start)
-- [Environment Variables](#environment-variables)
-- [Deployment Guide](#deployment-guide)
-- [API Reference](#api-reference)
-- [Database Schema](#database-schema)
-- [Role-Based Access Control](#role-based-access-control)
-- [Security](#security)
-- [Troubleshooting](#troubleshooting)
+<img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white" alt="React"/>
+<img src="https://img.shields.io/badge/Express-4.x-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express"/>
+<img src="https://img.shields.io/badge/PostgreSQL-Supabase-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
+<img src="https://img.shields.io/badge/TypeScript-5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript"/>
+<img src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind"/>
 
----
+<br/>
 
-## Overview
+<img src="https://img.shields.io/badge/Deploy-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel"/>
+<img src="https://img.shields.io/badge/Backend-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white" alt="Render"/>
+<img src="https://img.shields.io/badge/Database-Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase"/>
 
-BSC Exclusive Tracking is a full-stack web application designed for enterprise teams that need to track compliance processes, verify employee locations, collect evidence, and maintain complete audit trails. The system enforces accountability through GPS tracking, photo/document evidence, supervisor approvals, and automated compliance workflows.
+<br/>
 
-**Live URLs:**
-- Frontend: https://bsc-v1-seven.vercel.app
-- Backend API: https://bsc-v1.onrender.com
+<img src="https://img.shields.io/badge/License-Private-blue?style=for-the-badge" alt="License"/>
+<img src="https://img.shields.io/badge/Version-1.1.0-brightgreen?style=for-the-badge" alt="Version"/>
+<img src="https://img.shields.io/badge/Node.js-%3E%3D18.17-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js"/>
 
 ---
 
-## Architecture
+![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=0EA5E9&center=true&vCenter=true&width=600&lines=Built+for+Operations+Teams+that+Need+Proof%2C+Not+Promises;Track+Every+Process.+Verify+Every+Location;Enterprise-Grade+Security+%26+Compliance)
+
+</div>
+
+---
+
+## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Globe%20With%20Meridians.png" alt="Globe" width="35"/> Live Demo
+
+<div align="center">
+
+| 🌐 Frontend | 🔧 Backend API |
+|:---:|:---:|
+| [![Frontend](https://img.shields.io/badge/LIVE-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://bsc-v1-seven.vercel.app) | [![Backend](https://img.shields.io/badge/LIVE-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://bsc-v1.onrender.com) |
+| `https://bsc-v1-seven.vercel.app` | `https://bsc-v1.onrender.com` |
+
+</div>
+
+---
+
+## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Star.png" alt="Star" width="35"/> Highlights
+
+<div align="center">
+
+| <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/People/Man%20Technologist.png" alt="Admin" width="40"/> | <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/People/Man%20Office%20Worker.png" alt="Supervisor" width="40"/> | <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/People/Woman%20Technologist.png" alt="User" width="40"/> |
+|:---:|:---:|:---:|
+| **6 Roles** | **Live GPS** | **Evidence Upload** |
+| RBAC with 40+ permissions | 30-min auto sync | Images, PDF, CSV, Audio |
+
+| <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Check%20Box%20with%20Check.png" alt="Check" width="40"/> | <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Bell.png" alt="Bell" width="40"/> | <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Bar%20Chart.png" alt="Chart" width="40"/> |
+|:---:|:---:|:---:|
+| **Auto-Approval** | **Notifications** | **Reports & Export** |
+| 1-hour window | Real-time in-app | CSV analytics |
+
+</div>
+
+---
+
+## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Gear.png" alt="Gear" width="35"/> Tech Stack
+
+<div align="center">
+
+```mermaid
+graph TB
+    subgraph Frontend["Frontend - React 19"]
+        A["Vite + TypeScript"]
+        B["Tailwind CSS 4"]
+        C["Recharts"]
+        D["Leaflet Maps"]
+    end
+
+    subgraph Backend["Backend - Node.js"]
+        E["Express REST API"]
+        F["JWT Auth"]
+        G["Multer Upload"]
+        H["node-cron"]
+    end
+
+    subgraph Database["Database"]
+        I["PostgreSQL"]
+        J["Supabase Storage"]
+    end
+
+    A --> E
+    E --> I
+    E --> J
+```
+
+</div>
+
+| <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Symbols/Top.png" alt="Top" width="25"/> Layer | Technology | Purpose |
+|:---|:---|:---|
+| <img src="https://img.shields.io/badge/Frontend-React_19-61DAFB?style=flat-square&logo=react&logoColor=white" alt="Frontend"/> | React 19 + Vite + TypeScript | SPA with code splitting |
+| <img src="https://img.shields.io/badge/Styling-Tailwind_CSS_4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Styling"/> | Tailwind CSS 4 | Utility-first styling |
+| <img src="https://img.shields.io/badge/Charts-Recharts-FF6384?style=flat-square&logo=react&logoColor=white" alt="Charts"/> | Recharts | Dashboard analytics |
+| <img src="https://img.shields.io/badge/Maps-Leaflet-199900?style=flat-square&logo=openstreetmap&logoColor=white" alt="Maps"/> | Leaflet | Live GPS tracking map |
+| <img src="https://img.shields.io/badge/Backend-Express_4-000000?style=flat-square&logo=express&logoColor=white" alt="Backend"/> | Node.js + Express | REST API server |
+| <img src="https://img.shields.io/badge/Auth-JWT_bcrypt-FF6B6B?style=flat-square&logo=jsonwebtokens&logoColor=white" alt="Auth"/> | JWT + bcrypt | Secure sessions |
+| <img src="https://img.shields.io/badge/Upload-Multer-FF9800?style=flat-square&logo=node.js&logoColor=white" alt="Upload"/> | Multer + Supabase | File handling |
+| <img src="https://img.shields.io/badge/DB-PostgreSQL_4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="DB"/> | PostgreSQL (Supabase) | Relational storage |
+
+---
+
+## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Framed%20Picture.png" alt="Picture" width="35"/> Architecture
+
+<div align="center">
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                        USER'S BROWSER                               │
+│                        👤 USER'S BROWSER                            │
 │                                                                     │
 │  ┌───────────────────────────────────────────────────────────────┐  │
-│  │                    REACT 19 (Vite)                            │  │
+│  │                    ⚛️  REACT 19 (Vite)                        │  │
 │  │                                                               │  │
 │  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐    │  │
-│  │  │ Consent  │  │  Auth    │  │ Tracking │  │  Pages   │    │  │
-│  │  │  Gate    │→ │ Provider │→ │ Provider │→ │ (Routes) │    │  │
+│  │  │ 🛡️ Consent│  │ 🔐 Auth  │  │ 📍 Track │  │ 📄 Pages │    │  │
+│  │  │   Gate   │→ │ Provider │→ │ Provider │→ │ (Routes) │    │  │
 │  │  └──────────┘  └──────────┘  └──────────┘  └──────────┘    │  │
 │  │                                                               │  │
 │  │  ┌──────────────────────────────────────────────────────┐    │  │
-│  │  │                  API Client (fetch)                   │    │  │
-│  │  │         credentials: include (cross-origin)           │    │  │
+│  │  │         🌐 API Client (fetch + credentials)           │    │  │
 │  │  └──────────────────────────────────────────────────────┘    │  │
 │  └───────────────────────────────────────────────────────────────┘  │
 │                              │                                      │
@@ -58,877 +134,623 @@ BSC Exclusive Tracking is a full-stack web application designed for enterprise t
 └──────────────────────────────┼──────────────────────────────────────┘
                                │
                     ┌──────────▼──────────┐
-                    │   VERCEL (CDN)       │
-                    │   Static Hosting     │
-                    │   + /api proxy        │
+                    │   ▲ VERCEL          │
+                    │   Static + CDN      │
+                    │   + API Proxy       │
                     └──────────┬──────────┘
                                │
                     ┌──────────▼──────────┐
-                    │   RENDER            │
+                    │   ⚙️ RENDER         │
                     │   Node.js/Express   │
                     │   REST API          │
                     └──┬──────┬──────┬───┘
                        │      │      │
           ┌────────────▼┐  ┌──▼───┐  ▼──────────────┐
-          │  SUPABASE    │  │ JWT  │  SUPABASE       │
-          │  PostgreSQL  │  │ Auth │  Storage         │
-          │  (Database)  │  │(Cookie)│ (File Uploads) │
-          └──────────────┘  └──────┘  └──────────────┘
+          │  🗄️ SUPABASE │  │ 🔑  │  📦 SUPABASE    │
+          │  PostgreSQL  │  │ JWT │  Storage         │
+          │  (Database)  │  │(🔒) │  (Files)         │
+          └──────────────┘  └─────┘  └──────────────┘
 ```
 
----
-
-## Tech Stack
-
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| **Frontend** | React 19 + Vite + TypeScript | SPA with code splitting |
-| **Styling** | Tailwind CSS 4 | Utility-first CSS framework |
-| **Charts** | Recharts | Dashboard analytics |
-| **Maps** | Leaflet | Live GPS tracking map |
-| **Backend** | Node.js + Express + TypeScript | REST API server |
-| **Authentication** | JWT (jose) + bcryptjs | Secure session management |
-| **File Upload** | Multer + Supabase Storage | Evidence file handling |
-| **Background Jobs** | node-cron | Auto-approval scheduler |
-| **Database** | PostgreSQL (Supabase) | Relational data storage |
-| **Frontend Deploy** | Vercel | Static hosting + CDN |
-| **Backend Deploy** | Render | Node.js hosting |
+</div>
 
 ---
 
-## Features
+## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Jigsaw.png" alt="Jigsaw" width="35"/> Project Structure
 
-### Core Features
-
-| Feature | Description |
-|---------|-------------|
-| **Role-Based Access Control** | 6 roles: ADMIN, MANAGER, SUPERVISOR, AUDITOR, USER, VIEWER with 40+ granular permissions |
-| **Admin-Only Account Creation** | No public sign-up; only administrators create user accounts |
-| **Process Modules** | Organize checkpoints into modules by department |
-| **Checkpoints** | Daily, weekly, monthly, and one-time compliance checkpoints |
-| **Evidence Uploads** | Images (JPG/PNG/WEBP/GIF), PDF, CSV, Audio (MP3/WAV/M4A/OGG/AAC) |
-| **Live GPS Tracking** | Automatic location reporting every 30 minutes with admin map |
-| **Auto-Approval** | Submissions unreviewed for 1 hour are auto-approved |
-| **Supervisor Approvals** | Approve/reject with comments and escalation |
-| **Audit Trail** | Every action logged with before/after payloads, IP, user agent |
-| **Notifications** | Real-time in-app notifications with unread badge |
-| **Reports & Exports** | Compliance analytics with CSV export |
-| **Calendar View** | Monthly compliance overview with per-day details |
-
-### Admin Features
-
-- Full user management (create, edit, deactivate, delete)
-- Module and checkpoint CRUD with cloning
-- Assignment management with frequency scheduling
-- Live GPS tracking map with team locations
-- Audit log viewer with filters
-- System settings configuration
-- Bulk actions (activate/deactivate/delete)
-
-### Supervisor Features
-
-- Team dashboard with KPIs
-- Submission approval/rejection workflow
-- Employee management
-- Department and project oversight
-- Activity logs and team reports
-
-### User Features
-
-- Personal dashboard with today's tasks
-- Checkpoint submission with evidence
-- Location sync status indicator
-- Submission history and reports
-- Calendar view
-
----
-
-## Project Structure
+<div align="center">
 
 ```
 bsc_v1/
-├── frontend/                    # React SPA
+├── 🎨 frontend/                    # React SPA
 │   ├── src/
-│   │   ├── components/          # Reusable UI components
-│   │   │   ├── ConsentGate.tsx  # Mandatory terms + location consent
-│   │   │   ├── AppShell.tsx     # Layout wrapper with sidebar
-│   │   │   ├── EvidenceUploader.tsx  # File upload component
-│   │   │   ├── Modal.tsx        # Dialog component
-│   │   │   ├── StatCard.tsx     # KPI card
-│   │   │   ├── StatusBadge.tsx  # Status pill
-│   │   │   └── States.tsx       # Loading/error states
-│   │   ├── lib/
-│   │   │   ├── api.ts           # HTTP client (fetch wrapper)
-│   │   │   ├── auth.tsx         # Auth context + hooks
-│   │   │   ├── tracking.tsx     # GPS tracking provider
-│   │   │   ├── types.ts         # TypeScript interfaces
-│   │   │   └── format.ts        # Date/number formatters
-│   │   ├── pages/
-│   │   │   ├── Landing.tsx      # Public landing page
-│   │   │   ├── Login.tsx        # Login page
-│   │   │   ├── Dashboard.tsx    # User dashboard
-│   │   │   ├── Modules.tsx      # Module listing
-│   │   │   ├── ModuleDetail.tsx # Module checkpoints
-│   │   │   ├── CheckpointDetail.tsx  # Submission form
-│   │   │   ├── History.tsx      # Submission history
-│   │   │   ├── Reports.tsx      # User reports
-│   │   │   ├── CalendarPage.tsx # Calendar view
-│   │   │   ├── Profile.tsx      # User profile
-│   │   │   ├── admin/           # Admin pages (13 pages)
-│   │   │   └── supervisor/      # Supervisor pages (8 pages)
-│   │   ├── App.tsx              # Route definitions
-│   │   └── main.tsx             # Entry point
-│   ├── vercel.json              # Vercel config + API proxy
-│   └── package.json
+│   │   ├── 🧩 components/          # Reusable UI components
+│   │   │   ├── 🛡️ ConsentGate.tsx  # Mandatory consent modal
+│   │   │   ├── 📱 AppShell.tsx     # Layout wrapper
+│   │   │   ├── 📤 EvidenceUploader  # File upload
+│   │   │   └── 🎭 States.tsx       # Loading/Error states
+│   │   ├── 📚 lib/
+│   │   │   ├── 🌐 api.ts           # HTTP client
+│   │   │   ├── 🔐 auth.tsx         # Auth context
+│   │   │   ├── 📍 tracking.tsx     # GPS tracking
+│   │   │   └── 🎨 format.ts        # Formatters
+│   │   └── 📄 pages/               # 20+ page components
+│   ├── 📦 vercel.json              # Vercel config
+│   └── 📋 package.json
 │
-├── backend/                     # Express API
+├── ⚙️ backend/                     # Express API
 │   ├── src/
-│   │   ├── server.ts            # Entry point
-│   │   ├── app.ts               # Express app factory
-│   │   ├── config.ts            # Environment config
-│   │   ├── db.ts                # PostgreSQL pool
-│   │   ├── middleware/
-│   │   │   └── auth.ts          # JWT auth + RBAC middleware
-│   │   ├── routes/
-│   │   │   ├── auth.routes.ts   # Login/logout/session
-│   │   │   ├── admin.routes.ts  # Admin CRUD endpoints
-│   │   │   ├── modules.routes.ts    # User module endpoints
-│   │   │   ├── checkpoints.routes.ts # Checkpoint details
-│   │   │   ├── submissions.routes.ts # Submission workflow
-│   │   │   ├── evidence.routes.ts    # File upload/download
-│   │   │   ├── tracking.routes.ts    # GPS tracking
-│   │   │   ├── dashboard.routes.ts   # Dashboard data
-│   │   │   ├── reports.routes.ts     # Analytics
-│   │   │   ├── notifications.routes.ts # Notifications
-│   │   │   ├── calendar.routes.ts    # Calendar data
-│   │   │   ├── profile.routes.ts     # User profile
-│   │   │   ├── supervisor.routes.ts  # Supervisor endpoints
-│   │   │   └── public.routes.ts      # Public stats
-│   │   ├── jobs/
-│   │   │   └── autoApproval.ts  # Auto-approval cron job
-│   │   └── utils/
-│   │       ├── audit.ts         # Audit logging
-│   │       ├── http.ts          # Response helpers
-│   │       ├── notify.ts        # Notification sender
-│   │       ├── review.ts        # Review logic
-│   │       └── session.ts       # JWT session management
-│   ├── tsconfig.json
-│   └── package.json
+│   │   ├── 🚀 server.ts            # Entry point
+│   │   ├── 📡 app.ts               # Express app
+│   │   ├── ⚙️ config.ts            # Environment
+│   │   ├── 🗄️ db.ts                # PostgreSQL pool
+│   │   ├── 🔐 middleware/           # Auth + RBAC
+│   │   ├── 📡 routes/              # 14 route modules
+│   │   ├── ⏰ jobs/                # Background tasks
+│   │   └── 🛠️ utils/               # Helpers
+│   ├── 📋 package.json
+│   └── 📄 tsconfig.json
 │
-├── database/                    # SQL schema + seeds
-│   ├── schema.sql               # Full PostgreSQL schema
-│   ├── supabase-complete-setup.sql  # Supabase setup script
-│   ├── supabase-storage-setup.sql   # Storage bucket setup
-│   ├── init.mjs                 # DB initialization script
-│   └── package.json
+├── 🗄️ database/                    # SQL schema
+│   ├── 📄 schema.sql               # Full schema
+│   └── 🌱 seeds/                   # Demo data
 │
-├── render.yaml                  # Render deployment blueprint
-└── README.md                    # This file
+├── 🚀 render.yaml                  # Render blueprint
+└── 📄 README.md                    # This file
+```
+
+</div>
+
+---
+
+## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Sparkles.png" alt="Sparkles" width="35"/> Features
+
+<div align="center">
+
+### 🔐 Authentication & Security
+
+</div>
+
+| Feature | Description | Badge |
+|:--------|:------------|:------|
+| JWT Sessions | HTTP-only cookies, 7-day expiry | <img src="https://img.shields.io/badge/Secure-Yes-green?style=flat-square" alt="Secure"/> |
+| bcrypt Passwords | Salted + hashed, never stored plaintext | <img src="https://img.shields.io/badge/Hashed-Yes-green?style=flat-square" alt="Hashed"/> |
+| RBAC | 40+ granular permissions per role | <img src="https://img.shields.io/badge/Permissions-40+-blue?style=flat-square" alt="Permissions"/> |
+| Audit Trail | Every action logged with IP + user agent | <img src="https://img.shields.io/badge/Logged-Yes-green?style=flat-square" alt="Logged"/> |
+| CORS | Configurable allowed origins | <img src="https://img.shields.io/badge/Enabled-Yes-green?style=flat-square" alt="CORS"/> |
+
+<div align="center">
+
+### 📍 GPS Tracking
+
+</div>
+
+| Feature | Description | Badge |
+|:--------|:------------|:------|
+| Auto Sync | Every 30 minutes automatically | <img src="https://img.shields.io/badge/Interval-30min-orange?style=flat-square" alt="Interval"/> |
+| Live Map | Leaflet map with all team members | <img src="https://img.shields.io/badge/Map-Leaflet-green?style=flat-square" alt="Map"/> |
+| Online Status | Real-time online/offline detection | <img src="https://img.shields.io/badge/Status-Real--time-blue?style=flat-square" alt="Status"/> |
+| Location History | Full GPS trail per user | <img src="https://img.shields.io/badge/History-Full-purple?style=flat-square" alt="History"/> |
+| Accuracy + Battery | Device info with each ping | <img src="https://img.shields.io/badge/Details-Yes-green?style=flat-square" alt="Details"/> |
+
+<div align="center">
+
+### 📤 Evidence Upload
+
+</div>
+
+| Type | Formats | Max Size | Badge |
+|:-----|:--------|:---------|:------|
+| 🖼️ Images | JPG, PNG, WEBP, GIF | 25 MB | <img src="https://img.shields.io/badge/Supported-Yes-green?style=flat-square" alt="Images"/> |
+| 📄 Documents | PDF | 25 MB | <img src="https://img.shields.io/badge/Supported-Yes-green?style=flat-square" alt="PDF"/> |
+| 📊 Spreadsheets | CSV | 25 MB | <img src="https://img.shields.io/badge/Supported-Yes-green?style=flat-square" alt="CSV"/> |
+| 🎵 Audio | MP3, WAV, M4A, OGG, AAC | 25 MB | <img src="https://img.shields.io/badge/Supported-Yes-green?style=flat-square" alt="Audio"/> |
+
+<div align="center">
+
+### ✅ Compliance Workflow
+
+</div>
+
+```
+┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
+│ 📝 DRAFT │───>│ 📤 SUBMIT│───>│ 🔍 REVIEW│───>│ ✅ APPROVE│   │ ❌ REJECT│
+└─────────┘    └─────────┘    └─────────┘    └─────────┘    └─────────┘
+     │                                             │               │
+     │              ⏰ Auto-approve (1hr)          │               │
+     └─────────────────────────────────────────────┘               │
+                                                                   │
+     ┌─────────────────────────────────────────────────────────────┘
+     │
+     └───> 📝 Resubmit
 ```
 
 ---
 
-## Flow Diagrams
+## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/People/Woman%20Technologist.png" alt="Roles" width="35"/> Roles & Access
 
-### 1. Authentication Flow
+<div align="center">
 
-```
-┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐
-│  User    │     │ Frontend │     │ Backend  │     │ Database │
-└────┬─────┘     └────┬─────┘     └────┬─────┘     └────┬─────┘
-     │                │                │                │
-     │  1. Enter      │                │                │
-     │  credentials   │                │                │
-     │───────────────>│                │                │
-     │                │                │                │
-     │                │  2. POST       │                │
-     │                │  /api/auth/    │                │
-     │                │  login         │                │
-     │                │───────────────>│                │
-     │                │                │                │
-     │                │                │  3. Query      │
-     │                │                │  user by       │
-     │                │                │  username      │
-     │                │                │───────────────>│
-     │                │                │                │
-     │                │                │  4. User rows  │
-     │                │                │<───────────────│
-     │                │                │                │
-     │                │                │  5. Verify     │
-     │                │                │  password      │
-     │                │                │  (bcrypt)      │
-     │                │                │                │
-     │                │                │  6. Create     │
-     │                │                │  JWT session   │
-     │                │                │  + DB row      │
-     │                │                │───────────────>│
-     │                │                │                │
-     │                │  7. Set cookie │                │
-     │                │  (sameSite:   │                │
-     │                │   none)        │                │
-     │                │<───────────────│                │
-     │                │                │                │
-     │                │  8. GET        │                │
-     │                │  /api/auth/me  │                │
-     │                │───────────────>│                │
-     │                │                │  9. Verify JWT │
-     │                │                │  Load user     │
-     │                │                │───────────────>│
-     │                │                │                │
-     │  10. Redirect  │  11. User +   │                │
-     │  to dashboard  │  permissions  │                │
-     │<───────────────│<──────────────│                │
-     │                │                │                │
+| <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/People/Man%20Technologist.png" alt="Admin" width="60"/> | <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/People/Man%20Office%20Worker.png" alt="Manager" width="60"/> | <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/People/Man%20Health%20Worker.png" alt="Supervisor" width="60"/> |
+|:---:|:---:|:---:|
+| **ADMIN** | **MANAGER** | **SUPERVISOR** |
+| <img src="https://img.shields.io/badge/Access-Full-red?style=for-the-badge" alt="Full"/> | <img src="https://img.shields.io/badge/Access-Review-orange?style=for-the-badge" alt="Review"/> | <img src="https://img.shields.io/badge/Access-Team-yellow?style=for-the-badge" alt="Team"/> |
+| All permissions | Approve/reject | Team management |
+| Bypass all checks | View reports | Approve/reject |
+
+| <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/People/Woman%20Detective.png" alt="Auditor" width="60"/> | <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/People/Woman%20Technologist.png" alt="User" width="60"/> | <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/People/Person%20Running.png" alt="Viewer" width="60"/> |
+|:---:|:---:|:---:|
+| **AUDITOR** | **USER** | **VIEWER** |
+| <img src="https://img.shields.io/badge/Access-Read--Only-blue?style=for-the-badge" alt="Read"/> | <img src="https://img.shields.io/badge/Access-Standard-green?style=for-the-badge" alt="Standard"/> | <img src="https://img.shields.io/badge/Access-Minimal-gray?style=for-the-badge" alt="Minimal"/> |
+| View submissions | Submit checkpoints | View own data |
+| View audit logs | Upload evidence | View own reports |
+
+</div>
+
+---
+
+## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Dot%20Button.png" alt="Dot" width="35"/> Flow Diagrams
+
+### 🔐 Authentication Flow
+
+```mermaid
+sequenceDiagram
+    participant 👤 User
+    participant 🖥️ Frontend
+    participant ⚙️ Backend
+    participant 🗄️ Database
+
+    👤 User->>🖥️ Frontend: Enter credentials
+    🖥️ Frontend->>⚙️ Backend: POST /api/auth/login
+    ⚙️ Backend->>🗄️ Database: Query user by username
+    🗄️ Database-->>⚙️ Backend: User data + password hash
+    ⚙️ Backend->>⚙️ Backend: Verify password (bcrypt)
+    ⚙️ Backend->>⚙️ Backend: Create JWT session
+    ⚙️ Backend->>🗄️ Database: Insert session row
+    ⚙️Backend-->>🖥️ Frontend: Set cookie (sameSite: none)
+    🖥️ Frontend->>⚙️ Backend: GET /api/auth/me
+    ⚙️ Backend->>🗄️ Database: Verify JWT + load user
+    🗄️ Database-->>⚙️ Backend: User + permissions
+    ⚙️ Backend-->>🖥️ Frontend: User object
+    🖥️ Frontend->>👤 User: Redirect to dashboard
 ```
 
-### 2. Evidence Upload Flow
+### 📍 GPS Tracking Flow
 
-```
-┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐
-│  User    │     │ Frontend │     │ Backend  │     │ Multer   │     │ Supabase │
-└────┬─────┘     └────┬─────┘     └────┬─────┘     └────┬─────┘     └────┬─────┘
-     │                │                │                │                │
-     │  1. Select     │                │                │                │
-     │  file(s)       │                │                │                │
-     │───────────────>│                │                │                │
-     │                │                │                │                │
-     │                │  2. POST       │                │                │
-     │                │  /api/evidence │                │                │
-     │                │  (FormData)    │                │                │
-     │                │───────────────>│                │                │
-     │                │                │                │                │
-     │                │                │  3. Parse      │                │
-     │                │                │  multipart     │                │
-     │                │                │───────────────>│                │
-     │                │                │                │                │
-     │                │                │  4. Validate   │                │
-     │                │                │  MIME type     │                │
-     │                │                │  (allowlist)   │                │
-     │                │                │                │                │
-     │                │                │  5. Check      │                │
-     │                │                │  file size     │                │
-     │                │                │  (25MB max)    │                │
-     │                │                │                │                │
-     │                │                │  6. Upload     │                │
-     │                │                │  to Supabase   │                │
-     │                │                │  Storage       │                │
-     │                │                │───────────────────────────────>│
-     │                │                │                │                │
-     │                │                │  7. Get        │                │
-     │                │                │  public URL    │                │
-     │                │                │<───────────────────────────────│
-     │                │                │                │                │
-     │                │                │  8. INSERT     │                │
-     │                │                │  evidence_files│                │
-     │                │                │───────────────>│                │
-     │                │                │                │                │
-     │                │  9. Return     │                │                │
-     │                │  metadata +    │                │                │
-     │                │  URL           │                │                │
-     │                │<───────────────│                │                │
-     │                │                │                │                │
-     │  10. Show      │                │                │                │
-     │  in list       │                │                │                │
-     │<───────────────│                │                │                │
-     │                │                │                │                │
+```mermaid
+sequenceDiagram
+    participant 🌐 Browser
+    participant 📍 Tracking
+    participant ⚙️ Backend
+    participant 🗄️ Database
+    participant 👨‍💼 Admin
+
+    Note over 🌐 Browser: Every 30 minutes
+    🌐 Browser->>📍 Tracking: geolocation.getCurrentPosition()
+    🌐 Browser-->>📍 Tracking: GPS coordinates
+    📍 Tracking->>⚙️ Backend: POST /api/tracking
+    ⚙️ Backend->>🗄️ Database: INSERT location_tracks
+    🗄️ Database-->>⚙️ Backend: Track ID
+    ⚙️ Backend-->>📍 Tracking: 200 OK
+
+    👨‍💼 Admin->>⚙️ Backend: GET /api/tracking/latest
+    ⚙️ Backend->>🗄️ Database: Query latest per user
+    🗄️ Database-->>⚙️ Backend: All locations
+    ⚙️ Backend-->>👨‍💼 Admin: User locations + online status
+    👨‍💼 Admin->>👨‍💼 Admin: Display on Leaflet map
 ```
 
-### 3. GPS Tracking Flow
+### 📤 Evidence Upload Flow
 
-```
-┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐
-│  Browser │     │ Frontend │     │ Backend  │     │ Database │
-│  (GPS)   │     │ Tracking │     │          │     │          │
-└────┬─────┘     └────┬─────┘     └────┬─────┘     └────┬─────┘
-     │                │                │                │
-     │  1. User       │                │                │
-     │  logs in       │                │                │
-     │───────────────>│                │                │
-     │                │                │                │
-     │                │  2. Check      │                │
-     │                │  permissions   │                │
-     │                │  (tracking:    │                │
-     │                │   update)      │                │
-     │                │                │                │
-     │  3. Request    │                │                │
-     │  geolocation   │                │                │
-     │<───────────────│                │                │
-     │                │                │                │
-     │  4. GPS        │                │                │
-     │  coordinates   │                │                │
-     │───────────────>│                │                │
-     │                │                │                │
-     │                │  5. POST       │                │
-     │                │  /api/tracking │                │
-     │                │  {lat,lng,     │                │
-     │                │   accuracy}    │                │
-     │                │───────────────>│                │
-     │                │                │                │
-     │                │                │  6. INSERT     │
-     │                │                │  location_     │
-     │                │                │  tracks        │
-     │                │                │───────────────>│
-     │                │                │                │
-     │                │  7. 200 OK     │                │
-     │                │<───────────────│                │
-     │                │                │                │
-     │                │  (repeats every 30 minutes)     │
-     │                │                │                │
-     │                │                │                │
-     │  ┌─────────────┼────────────────┼────────────────┤
-     │  │ ADMIN VIEW  │                │                │
-     │  └─────────────┼────────────────┼────────────────┤
-     │                │                │                │
-     │                │  8. GET        │                │
-     │                │  /api/tracking │                │
-     │                │  /latest       │                │
-     │                │───────────────>│                │
-     │                │                │                │
-     │                │                │  9. Query      │
-     │                │                │  latest per    │
-     │                │                │  user + online │
-     │                │                │  status        │
-     │                │                │───────────────>│
-     │                │                │                │
-     │                │  10. Return    │                │
-     │                │  all user     │                │
-     │                │  locations    │                │
-     │                │<───────────────│                │
-     │                │                │                │
-     │  11. Show on   │                │                │
-     │  Leaflet map   │                │                │
-     │<───────────────│                │                │
-     │                │                │                │
+```mermaid
+sequenceDiagram
+    participant 👤 User
+    participant 🖥️ Frontend
+    participant ⚙️ Backend
+    participant 📦 Multer
+    participant ☁️ Supabase
+    participant 🗄️ Database
+
+    👤 User->>🖥️ Frontend: Select file(s)
+    🖥️ Frontend->>⚙️ Backend: POST /api/evidence (FormData)
+    ⚙️ Backend->>📦 Multer: Parse multipart
+    📦 Multer->>📦 Multer: Validate MIME type
+    📦 Multer->>📦 Multer: Check file size (25MB)
+    📦 Multer-->>⚙️ Backend: File buffer + metadata
+    ⚙️ Backend->>☁️ Supabase: Upload to Storage
+    ☁️ Supabase-->>⚙️ Backend: Public URL
+    ⚙️ Backend->>🗄️ Database: INSERT evidence_files
+    🗄️ Database-->>⚙️ Backend: Evidence record
+    ⚙️ Backend-->>🖥️ Frontend: Metadata + URL
+    🖥️ Frontend->>👤 User: Show in evidence list
 ```
 
-### 4. Checkpoint Submission Flow
+### 🛡️ Consent Gate Flow
 
-```
-┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐
-│  User    │     │ Frontend │     │ Backend  │     │ Database │
-└────┬─────┘     └────┬─────┘     └────┬─────┘     └────┬─────┘
-     │                │                │                │
-     │  1. Open       │                │                │
-     │  checkpoint    │                │                │
-     │───────────────>│                │                │
-     │                │                │                │
-     │                │  2. GET        │                │
-     │                │  /api/check-   │                │
-     │                │  points/:id    │                │
-     │                │───────────────>│                │
-     │                │                │                │
-     │                │  3. Return     │                │
-     │                │  checkpoint +  │                │
-     │                │  assignment    │                │
-     │                │<───────────────│                │
-     │                │                │                │
-     │  4. Fill form  │                │                │
-     │  + upload      │                │                │
-     │  evidence      │                │                │
-     │───────────────>│                │                │
-     │                │                │                │
-     │  5. Auto-save  │                │                │
-     │  draft         │                │                │
-     │───────────────>│                │                │
-     │                │  6. PUT        │                │
-     │                │  /api/sub-     │                │
-     │                │  missions/:id  │                │
-     │                │───────────────>│                │
-     │                │                │                │
-     │                │                │  7. UPDATE     │
-     │                │                │  submission    │
-     │                │                │───────────────>│
-     │                │                │                │
-     │  8. Click      │                │                │
-     │  "Submit"      │                │                │
-     │───────────────>│                │                │
-     │                │                │                │
-     │                │  9. POST       │                │
-     │                │  /api/sub-     │                │
-     │                │  missions/:id/ │                │
-     │                │  submit        │                │
-     │                │───────────────>│                │
-     │                │                │                │
-     │                │                │  10. UPDATE    │
-     │                │                │  status to     │
-     │                │                │  SUBMITTED     │
-     │                │                │───────────────>│
-     │                │                │                │
-     │                │                │  11. INSERT    │
-     │                │                │  notification  │
-     │                │                │  to supervisor │
-     │                │                │───────────────>│
-     │                │                │                │
-     │                │                │  12. INSERT    │
-     │                │                │  audit log     │
-     │                │                │───────────────>│
-     │                │                │                │
-     │  13. Success   │                │                │
-     │  notification  │                │                │
-     │<───────────────│                │                │
-     │                │                │                │
-     │                │         ┌──────┴──────┐         │
-     │                │         │ AUTO-APPROVE│         │
-     │                │         │ (after 1hr) │         │
-     │                │         └──────┬──────┘         │
-     │                │                │                │
-     │                │                │  14. Cron      │
-     │                │                │  finds old     │
-     │                │                │  submissions   │
-     │                │                │───────────────>│
-     │                │                │                │
-     │                │                │  15. AUTO-     │
-     │                │                │  APPROVE       │
-     │                │                │───────────────>│
-     │                │                │                │
-```
-
-### 5. Consent Gate Flow (First Visit)
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     USER OPENS SITE                          │
-└─────────────────────────┬───────────────────────────────────┘
-                          │
-                          ▼
-                ┌─────────────────────┐
-                │ Check localStorage  │
-                │ bsc_consent_accepted│
-                └──────────┬──────────┘
-                           │
-              ┌────────────┴────────────┐
-              │                         │
-         Not accepted               Already accepted
-              │                         │
-              ▼                         │
-   ┌─────────────────────┐              │
-   │ SHOW CONSENT MODAL  │              │
-   │                     │              │
-   │ ☐ Terms & Conditions│              │
-   │ ☐ Privacy Policy    │              │
-   │ [Grant Location]    │              │
-   │                     │              │
-   │ [Continue] (locked) │              │
-   └──────────┬──────────┘              │
-              │                         │
-              ▼                         │
-   ┌─────────────────────┐              │
-   │ User must:          │              │
-   │ 1. Check both ☑     │              │
-   │ 2. Grant location   │              │
-   └──────────┬──────────┘              │
-              │                         │
-              ▼                         │
-   ┌─────────────────────┐              │
-   │ Save to localStorage│              │
-   │ bsc_consent=true    │              │
-   │ bsc_location=true   │              │
-   └──────────┬──────────┘              │
-              │                         │
-              └────────────┬────────────┘
-                           │
-                           ▼
-                ┌─────────────────────┐
-                │   RENDER APP        │
-                └─────────────────────┘
+```mermaid
+flowchart TD
+    A[👤 User Opens Site] --> B{localStorage<br/>consent?}
+    B -->|Not accepted| C[🛡️ Show Consent Modal]
+    B -->|Accepted| D[⚛️ Render App]
+    
+    C --> E[☐ Terms & Conditions]
+    C --> F[☐ Privacy Policy]
+    C --> G[📍 Grant Location]
+    
+    E --> H{All checked<br/>+ location granted?}
+    F --> H
+    G --> H
+    
+    H -->|No| I[🔒 Button stays disabled]
+    H -->|Yes| J[💾 Save to localStorage]
+    
+    J --> D
+    
+    I --> E
 ```
 
 ---
 
-## Quick Start
+## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Dotted%20Square.png" alt="Square" width="35"/> Quick Start
 
-### Prerequisites
+<div align="center">
 
-- Node.js >= 18.17
-- PostgreSQL (local or Supabase)
-- npm or yarn
+### 📋 Prerequisites
 
-### Local Development
+<img src="https://img.shields.io/badge/Node.js-%3E%3D18.17-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Node"/>
+<img src="https://img.shields.io/badge/PostgreSQL-14+-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
+<img src="https://img.shields.io/badge/npm-or_yarn-CB3837?style=for-the-badge&logo=npm&logoColor=white" alt="npm"/>
+
+</div>
 
 ```bash
-# 1. Clone the repository
+# 1️⃣ Clone the repository
 git clone https://github.com/GaganCB2002/bsc_v1.git
 cd bsc_v1
 
-# 2. Database setup
+# 2️⃣ Database setup
 cd database
 npm install
-npm run init          # Creates DB, applies schema, seeds demo data
+npm run init          # Creates DB + schema + seeds
 cd ..
 
-# 3. Backend (port 4000)
+# 3️⃣ Backend (port 4000)
 cd backend
-cp .env.example .env  # Edit with your DATABASE_URL
+cp .env.example .env  # Edit DATABASE_URL
 npm install
-npm run dev           # Hot-reload dev server
+npm run dev           # Hot-reload
 
-# 4. Frontend (port 5173)
+# 4️⃣ Frontend (port 5173)
 cd frontend
-cp .env.example .env  # Edit VITE_API_URL if needed
 npm install
-npm run dev           # Vite dev server with API proxy
+npm run dev           # Vite dev server
 ```
 
-Open **http://localhost:5173**
+<div align="center">
 
-### Demo Accounts
+**Open** <img src="https://img.shields.io/badge/localhost:5173-0EA5E9?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome"/>
 
-| Role | Username | Password |
-|------|----------|----------|
-| Admin | `admin` | `Admin@123456` |
-| Supervisor | `jane.smith` | `Supervisor@123` |
-| Manager | `mike.ross` | `Manager@123` |
-| User | `john.doe` | `User@123456` |
+</div>
+
+### 🔑 Demo Accounts
+
+<div align="center">
+
+| Role | <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Key.png" alt="Key" width="20"/> Username | <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Locked.png" alt="Lock" width="20"/> Password | <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Door.png" alt="Door" width="20"/> Dashboard |
+|:------|:------|:------|:------|
+| <img src="https://img.shields.io/badge/Admin-SkyBlue-blue?style=flat-square" alt="Admin"/> | `admin` | `Admin@123456` | `/admin` |
+| <img src="https://img.shields.io/badge/Supervisor-Cyan-00BCD4?style=flat-square" alt="Supervisor"/> | `jane.smith` | `Supervisor@123` | `/supervisor` |
+| <img src="https://img.shields.io/badge/Manager-Blue-2196F3?style=flat-square" alt="Manager"/> | `mike.ross` | `Manager@123` | `/supervisor` |
+| <img src="https://img.shields.io/badge/User-Slate-607D8B?style=flat-square" alt="User"/> | `john.doe` | `User@123456` | `/dashboard` |
+
+</div>
 
 ---
 
-## Environment Variables
+## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Gear.png" alt="Gear" width="35"/> Environment Variables
 
-### Backend (`backend/.env`)
+<div align="center">
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `PORT` | No | `4000` | Server port |
-| `DATABASE_URL` | **Yes** | — | PostgreSQL connection string |
-| `DB_SSL` | No | auto | Force SSL (`true`/`false`) |
-| `SESSION_SECRET` | **Yes** | — | JWT signing secret (32+ chars) |
-| `CORS_ORIGIN` | **Yes** | — | Comma-separated frontend URLs |
-| `FILE_STORAGE_TYPE` | No | `local` | `local` or `supabase` |
-| `SUPABASE_URL` | If supabase | — | Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | If supabase | — | Supabase service role key |
-| `SUPABASE_BUCKET` | No | `evidence` | Storage bucket name |
-| `MAX_FILE_SIZE_MB` | No | `25` | Max upload size |
-| `AUTO_APPROVE_HOURS` | No | `1` | Auto-approval window |
+### ⚙️ Backend (`backend/.env`)
 
-### Frontend (`frontend/.env`)
+</div>
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `VITE_API_URL` | If separate backend | Backend URL (e.g., `https://bsc-v1.onrender.com`) |
+| Variable | Required | Default | Description | Badge |
+|:---------|:--------:|:-------:|:------------|:------|
+| `PORT` | No | `4000` | Server port | <img src="https://img.shields.io/badge/Optional-gray?style=flat-square" alt="Optional"/> |
+| `DATABASE_URL` | **Yes** | — | PostgreSQL connection string | <img src="https://img.shields.io/badge/Required-red?style=flat-square" alt="Required"/> |
+| `DB_SSL` | No | auto | Force SSL | <img src="https://img.shields.io/badge/Optional-gray?style=flat-square" alt="Optional"/> |
+| `SESSION_SECRET` | **Yes** | — | JWT signing secret | <img src="https://img.shields.io/badge/Required-red?style=flat-square" alt="Required"/> |
+| `CORS_ORIGIN` | **Yes** | — | Frontend URLs | <img src="https://img.shields.io/badge/Required-red?style=flat-square" alt="Required"/> |
+| `FILE_STORAGE_TYPE` | No | `local` | `local` or `supabase` | <img src="https://img.shields.io/badge/Optional-gray?style=flat-square" alt="Optional"/> |
+| `SUPABASE_URL` | If supabase | — | Supabase URL | <img src="https://img.shields.io/badge/Conditional-yellow?style=flat-square" alt="Conditional"/> |
+| `SUPABASE_SERVICE_ROLE_KEY` | If supabase | — | Service role key | <img src="https://img.shields.io/badge/Conditional-yellow?style=flat-square" alt="Conditional"/> |
+| `SUPABASE_BUCKET` | No | `evidence` | Storage bucket | <img src="https://img.shields.io/badge/Optional-gray?style=flat-square" alt="Optional"/> |
+| `MAX_FILE_SIZE_MB` | No | `25` | Max upload size | <img src="https://img.shields.io/badge/Optional-gray?style=flat-square" alt="Optional"/> |
+| `AUTO_APPROVE_HOURS` | No | `1` | Auto-approval window | <img src="https://img.shields.io/badge/Optional-gray?style=flat-square" alt="Optional"/> |
 
----
+<div align="center">
 
-## Deployment Guide
+### 🎨 Frontend (`frontend/.env`)
 
-### Step 1: Supabase (Database)
+</div>
 
-1. Create project at [supabase.com](https://supabase.com)
-2. Go to **SQL Editor** → paste `database/schema.sql` → Run
-3. Go to **SQL Editor** → paste `database/supabase-storage-setup.sql` → Run
-4. Copy **Connection string** (Settings → Database → URI)
-5. Copy **Service role key** (Settings → API)
-
-### Step 2: Render (Backend)
-
-1. Connect GitHub repo to Render
-2. Create **Web Service** with:
-   - Root directory: `backend`
-   - Build command: `npm install && npm run build`
-   - Start command: `node dist/server.js`
-3. Set environment variables:
-
-```
-DATABASE_URL=postgresql://postgres.xxx:password@aws-0-us-east-1.pooler.supabase.com:6543/postgres
-DB_SSL=true
-SESSION_SECRET=<auto-generate>
-CORS_ORIGIN=https://bsc-v1-seven.vercel.app
-FILE_STORAGE_TYPE=supabase
-SUPABASE_URL=https://xxxxx.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=eyJxxxxx
-SUPABASE_BUCKET=evidence
-NODE_ENV=production
-```
-
-### Step 3: Vercel (Frontend)
-
-1. Connect GitHub repo to Vercel
-2. Framework: **Vite**
-3. Build command: `npm run build`
-4. Output directory: `dist`
-5. Set environment variable:
-   - `VITE_API_URL` = `https://bsc-v1.onrender.com`
-6. Deploy
+| Variable | Required | Description | Badge |
+|:---------|:--------:|:------------|:------|
+| `VITE_API_URL` | If separate | Backend URL | <img src="https://img.shields.io/badge/Conditional-yellow?style=flat-square" alt="Conditional"/> |
 
 ---
 
-## API Reference
+## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Rocket.png" alt="Rocket" width="35"/> Deployment
 
-### Authentication
+<div align="center">
+
+### 🚀 Step-by-Step Guide
+
+</div>
+
+### 1️⃣ Supabase (Database)
+
+```bash
+# Create project at supabase.com
+# SQL Editor → Run schema.sql
+# SQL Editor → Run supabase-storage-setup.sql
+# Copy Connection string + Service role key
+```
+
+### 2️⃣ Render (Backend)
+
+```bash
+# Create Web Service
+# Root: backend
+# Build: npm install && npm run build
+# Start: node dist/server.js
+# Set env vars (see table above)
+```
+
+### 3️⃣ Vercel (Frontend)
+
+```bash
+# Connect GitHub repo
+# Framework: Vite
+# Build: npm run build
+# Output: dist
+# Set VITE_API_URL=https://bsc-v1.onrender.com
+# Deploy
+```
+
+---
+
+## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Notebook.png" alt="API" width="35"/> API Reference
+
+<div align="center">
+
+### 🔐 Authentication
+
+</div>
 
 | Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/auth/login` | No | Login with username/password |
-| GET | `/api/auth/me` | Yes | Get current user |
-| POST | `/api/auth/logout` | Yes | Logout |
+|:------:|:---------|:----:|:------------|
+| <img src="https://img.shields.io/badge/POST-green?style=flat-square" alt="POST"/> | `/api/auth/login` | No | Login |
+| <img src="https://img.shields.io/badge/GET-blue?style=flat-square" alt="GET"/> | `/api/auth/me` | Yes | Get user |
+| <img src="https://img.shields.io/badge/POST-green?style=flat-square" alt="POST"/> | `/api/auth/logout` | Yes | Logout |
 
-### Admin - Users
+<div align="center">
 
-| Method | Endpoint | Permission | Description |
-|--------|----------|------------|-------------|
-| GET | `/api/admin/users` | `users:list` | List all users |
-| POST | `/api/admin/users` | `users:create` | Create user |
-| PUT | `/api/admin/users/:id` | `users:update` | Update user |
-| DELETE | `/api/admin/users/:id` | `users:delete` | Delete user |
-| POST | `/api/admin/users/:id/reset-password` | `users:update` | Reset password |
+### 👨‍💼 Admin - Users
 
-### Admin - Modules
+</div>
 
 | Method | Endpoint | Permission | Description |
-|--------|----------|------------|-------------|
-| GET | `/api/admin/modules` | `modules:list` | List all modules |
-| POST | `/api/admin/modules` | `modules:create` | Create module |
-| PUT | `/api/admin/modules/:id` | `modules:update` | Update module |
-| DELETE | `/api/admin/modules/:id` | `modules:delete` | Delete module |
-| POST | `/api/admin/modules/:id/clone` | `modules:create` | Clone module + checkpoints |
+|:------:|:---------|:-----------|:------------|
+| <img src="https://img.shields.io/badge/GET-blue?style=flat-square" alt="GET"/> | `/api/admin/users` | `users:list` | List users |
+| <img src="https://img.shields.io/badge/POST-green?style=flat-square" alt="POST"/> | `/api/admin/users` | `users:create` | Create user |
+| <img src="https://img.shields.io/badge/PUT-orange?style=flat-square" alt="PUT"/> | `/api/admin/users/:id` | `users:update` | Update user |
+| <img src="https://img.shields.io/badge/DELETE-red?style=flat-square" alt="DELETE"/> | `/api/admin/users/:id` | `users:delete` | Delete user |
 
-### Admin - Checkpoints
+<div align="center">
 
-| Method | Endpoint | Permission | Description |
-|--------|----------|------------|-------------|
-| GET | `/api/admin/checkpoints` | `checkpoints:list` | List checkpoints |
-| POST | `/api/admin/checkpoints` | `checkpoints:create` | Create checkpoint |
-| PUT | `/api/admin/checkpoints/:id` | `checkpoints:update` | Update checkpoint |
-| DELETE | `/api/admin/checkpoints/:id` | `checkpoints:delete` | Delete checkpoint |
+### 📦 Admin - Modules
 
-### Admin - Assignments
+</div>
 
 | Method | Endpoint | Permission | Description |
-|--------|----------|------------|-------------|
-| GET | `/api/admin/assignments` | `assignments:list` | List assignments |
-| POST | `/api/admin/assignments` | `assignments:create` | Create assignment |
-| DELETE | `/api/admin/assignments/:id` | `assignments:delete` | Delete assignment |
+|:------:|:---------|:-----------|:------------|
+| <img src="https://img.shields.io/badge/GET-blue?style=flat-square" alt="GET"/> | `/api/admin/modules` | `modules:list` | List modules |
+| <img src="https://img.shields.io/badge/POST-green?style=flat-square" alt="POST"/> | `/api/admin/modules` | `modules:create` | Create module |
+| <img src="https://img.shields.io/badge/PUT-orange?style=flat-square" alt="PUT"/> | `/api/admin/modules/:id` | `modules:update` | Update module |
+| <img src="https://img.shields.io/badge/DELETE-red?style=flat-square" alt="DELETE"/> | `/api/admin/modules/:id` | `modules:delete` | Delete module |
+| <img src="https://img.shields.io/badge/POST-green?style=flat-square" alt="POST"/> | `/api/admin/modules/:id/clone` | `modules:create` | Clone module |
 
-### Tracking
+<div align="center">
 
-| Method | Endpoint | Permission | Description |
-|--------|----------|------------|-------------|
-| POST | `/api/tracking` | `tracking:update` | Submit GPS location |
-| GET | `/api/tracking/me` | Auth only | Get own location history |
-| GET | `/api/tracking/latest` | `tracking:view_all` | Get all latest locations |
-| GET | `/api/tracking/history` | `tracking:view_all` | Get user location history |
+### 📍 Tracking
 
-### Evidence
+</div>
 
 | Method | Endpoint | Permission | Description |
-|--------|----------|------------|-------------|
-| POST | `/api/evidence` | `evidence:upload` | Upload evidence file |
-| GET | `/api/evidence/:id` | Auth + owner | Download/view evidence |
-| DELETE | `/api/evidence/:id` | Auth + owner | Delete evidence |
+|:------:|:---------|:-----------|:------------|
+| <img src="https://img.shields.io/badge/POST-green?style=flat-square" alt="POST"/> | `/api/tracking` | `tracking:update` | Submit location |
+| <img src="https://img.shields.io/badge/GET-blue?style=flat-square" alt="GET"/> | `/api/tracking/me` | Auth only | Own history |
+| <img src="https://img.shields.io/badge/GET-blue?style=flat-square" alt="GET"/> | `/api/tracking/latest` | `tracking:view_all` | All latest |
+| <img src="https://img.shields.io/badge/GET-blue?style=flat-square" alt="GET"/> | `/api/tracking/history` | `tracking:view_all` | User history |
 
-### Submissions
+<div align="center">
+
+### 📤 Evidence
+
+</div>
 
 | Method | Endpoint | Permission | Description |
-|--------|----------|------------|-------------|
-| GET | `/api/submissions` | Auth only | Get user's submissions |
-| POST | `/api/submissions` | Auth only | Create/update submission |
-| POST | `/api/submissions/:id/submit` | Auth only | Submit for review |
-| GET | `/api/submissions/:id` | Auth only | Get submission detail |
+|:------:|:---------|:-----------|:------------|
+| <img src="https://img.shields.io/badge/POST-green?style=flat-square" alt="POST"/> | `/api/evidence` | `evidence:upload` | Upload file |
+| <img src="https://img.shields.io/badge/GET-blue?style=flat-square" alt="GET"/> | `/api/evidence/:id` | Auth + owner | Download |
+| <img src="https://img.shields.io/badge/DELETE-red?style=flat-square" alt="DELETE"/> | `/api/evidence/:id` | Auth + owner | Delete |
 
 ---
 
-## Database Schema
+## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Database.png" alt="Database" width="35"/> Database Schema
 
-### Core Tables
+<div align="center">
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                         users                                │
-├─────────────────────────────────────────────────────────────┤
-│ id (UUID PK)     │ employee_code  │ full_name               │
-│ email            │ phone          │ username                 │
-│ password_hash    │ status         │ role_id (FK→roles)       │
-│ department_id    │ created_by     │ last_login_at            │
-│ must_change_password │ created_at │ updated_at               │
-└─────────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                         roles                                │
-├─────────────────────────────────────────────────────────────┤
-│ id (UUID PK)     │ name (UNIQUE)  │ description              │
-└─────────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    role_permissions                          │
-├─────────────────────────────────────────────────────────────┤
-│ role_id (FK→roles) │ permission_id (FK→permissions)         │
-└─────────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                       permissions                            │
-├─────────────────────────────────────────────────────────────┤
-│ id (UUID PK)     │ name (UNIQUE)  │ description              │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+erDiagram
+    users ||--o{ roles : has
+    roles ||--o{ role_permissions : has
+    role_permissions ||--o{ permissions : has
+    users ||--o{ checkpoint_submissions : creates
+    users ||--o{ location_tracks : reports
+    users ||--o{ evidence_files : uploads
+    modules ||--o{ checkpoints : contains
+    checkpoints ||--o{ checkpoint_assignments : assigned_to
+    checkpoint_assignments ||--o{ checkpoint_submissions : produces
+    checkpoint_submissions ||--o{ evidence_files : contains
+    modules }o--|| departments : belongs_to
+    users }o--|| departments : belongs_to
 
-┌─────────────────────────────────────────────────────────────┐
-│                       modules                                │
-├─────────────────────────────────────────────────────────────┤
-│ id (UUID PK)     │ name            │ slug (UNIQUE)           │
-│ description      │ department_id   │ display_order           │
-│ status           │ created_by      │ created_at              │
-└─────────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                      checkpoints                             │
-├─────────────────────────────────────────────────────────────┤
-│ id (UUID PK)     │ module_id (FK)  │ title                   │
-│ description      │ score           │ is_accuracy_required    │
-│ is_corrective_action_required │ is_photo_required             │
-│ display_order    │ status          │ created_by              │
-└─────────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  checkpoint_assignments                      │
-├─────────────────────────────────────────────────────────────┤
-│ id (UUID PK)     │ checkpoint_id   │ user_id                 │
-│ assigned_date    │ due_date        │ frequency               │
-│ (DAILY/WEEKLY/MONTHLY/ONE_TIME)                              │
-└─────────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                 checkpoint_submissions                       │
-├─────────────────────────────────────────────────────────────┤
-│ id (UUID PK)     │ assignment_id   │ checkpoint_id           │
-│ user_id          │ submission_date │ status                  │
-│ (DRAFT/SUBMITTED/APPROVED/REJECTED)                          │
-│ supervisor_comment│ reviewed_by     │ reviewed_at             │
-│ submitted_at     │ auto_approved   │ created_at              │
-└─────────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    evidence_files                            │
-├─────────────────────────────────────────────────────────────┤
-│ id (UUID PK)     │ submission_id   │ uploaded_by             │
-│ original_name    │ stored_name     │ mime_type               │
-│ file_size        │ storage_path    │ public_url              │
-│ created_at                                                      │
-└─────────────────────────────────────────────────────────────┘
+    users {
+        uuid id PK
+        varchar employee_code
+        varchar full_name
+        varchar email
+        varchar phone
+        varchar username
+        varchar password_hash
+        varchar status
+        uuid role_id FK
+        uuid department_id FK
+    }
 
-┌─────────────────────────────────────────────────────────────┐
-│                   location_tracks                            │
-├─────────────────────────────────────────────────────────────┤
-│ id (UUID PK)     │ user_id         │ latitude                │
-│ longitude        │ accuracy        │ address                 │
-│ battery_level    │ tracked_at                                                  │
-└─────────────────────────────────────────────────────────────┘
+    roles {
+        uuid id PK
+        varchar name
+        text description
+    }
 
-┌─────────────────────────────────────────────────────────────┐
-│                     audit_logs                               │
-├─────────────────────────────────────────────────────────────┤
-│ id (UUID PK)     │ user_id         │ action                  │
-│ entity_type      │ entity_id       │ old_values (JSON)       │
-│ new_values (JSON)│ ip_address      │ user_agent              │
-│ created_at                                                      │
-└─────────────────────────────────────────────────────────────┘
+    modules {
+        uuid id PK
+        varchar name
+        varchar slug
+        text description
+        uuid department_id FK
+        int display_order
+        varchar status
+    }
 
-┌─────────────────────────────────────────────────────────────┐
-│                    notifications                             │
-├─────────────────────────────────────────────────────────────┤
-│ id (UUID PK)     │ user_id         │ title                   │
-│ message          │ type            │ entity_type             │
-│ entity_id        │ is_read         │ created_at              │
-└─────────────────────────────────────────────────────────────┘
+    checkpoints {
+        uuid id PK
+        uuid module_id FK
+        varchar title
+        text description
+        int score
+        boolean is_accuracy_required
+        boolean is_photo_required
+        int display_order
+        varchar status
+    }
 
-┌─────────────────────────────────────────────────────────────┐
-│                      sessions                                │
-├─────────────────────────────────────────────────────────────┤
-│ id (UUID PK)     │ user_id         │ token (UNIQUE)          │
-│ expires_at       │ ip_address      │ user_agent              │
-│ created_at                                                      │
-└─────────────────────────────────────────────────────────────┘
+    checkpoint_submissions {
+        uuid id PK
+        uuid assignment_id FK
+        uuid checkpoint_id FK
+        uuid user_id FK
+        date submission_date
+        varchar status
+        text supervisor_comment
+        timestamp submitted_at
+        boolean auto_approved
+    }
+
+    evidence_files {
+        uuid id PK
+        uuid submission_id FK
+        uuid uploaded_by FK
+        varchar original_name
+        varchar stored_name
+        varchar mime_type
+        bigint file_size
+        text storage_path
+        text public_url
+    }
+
+    location_tracks {
+        uuid id PK
+        uuid user_id FK
+        decimal latitude
+        decimal longitude
+        decimal accuracy
+        int battery_level
+        timestamp tracked_at
+    }
+
+    audit_logs {
+        uuid id PK
+        uuid user_id FK
+        varchar action
+        varchar entity_type
+        uuid entity_id
+        jsonb old_values
+        jsonb new_values
+        inet ip_address
+        text user_agent
+    }
 ```
 
----
-
-## Role-Based Access Control
-
-| Role | Access Level | Key Permissions |
-|------|-------------|-----------------|
-| **ADMIN** | Full access | All permissions, bypass all checks |
-| **MANAGER** | Review access | Approve/reject submissions, view reports, manage team |
-| **SUPERVISOR** | Team management | Approve/reject, manage employees, departments, projects |
-| **AUDITOR** | Read-only | View submissions, evidence, reports, audit logs |
-| **USER** | Standard | Submit checkpoints, upload evidence, view own history |
-| **VIEWER** | Minimal read-only | View own submissions and reports |
-
-### Permission Categories
-
-- `users:*` — User management
-- `modules:*` — Module CRUD
-- `checkpoints:*` — Checkpoint CRUD
-- `assignments:*` — Assignment management
-- `submissions:*` — Submission viewing and approval
-- `evidence:*` — Evidence upload and viewing
-- `tracking:*` — GPS tracking management
-- `reports:*` — Report generation
-- `audit:*` — Audit log access
-- `settings:*` — System settings
+</div>
 
 ---
 
-## Security
+## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Shield.png" alt="Security" width="35"/> Security
 
-| Layer | Implementation |
-|-------|---------------|
-| **Authentication** | JWT tokens in HTTP-only cookies, 7-day expiry |
-| **Password Hashing** | bcrypt with salt rounds = 10 |
-| **CORS** | Configurable allowed origins with credentials |
-| **RBAC** | 40+ permissions checked on every API request |
-| **Input Validation** | Zod schemas on all endpoints |
-| **File Upload** | MIME type allowlist, 25MB limit, UUID filenames |
-| **Rate Limiting** | Configurable per-endpoint limits |
-| **Audit Trail** | Every mutation logged with before/after JSON |
-| **Session Management** | Server-side session rows, revocable |
-| **Encryption** | TLS 1.3 in transit, AES-256 at rest |
-| **Cookie Security** | `httpOnly`, `secure`, `sameSite: none` (cross-origin) |
+<div align="center">
 
----
+| Layer | Implementation | Badge |
+|:------|:---------------|:------|
+| 🔐 Authentication | JWT tokens in HTTP-only cookies | <img src="https://img.shields.io/badge/Secure-Yes-green?style=flat-square" alt="Secure"/> |
+| 🔑 Passwords | bcrypt with salt rounds = 10 | <img src="https://img.shields.io/badge/Hashed-Yes-green?style=flat-square" alt="Hashed"/> |
+| 🌐 CORS | Configurable allowed origins | <img src="https://img.shields.io/badge/Enabled-Yes-green?style=flat-square" alt="CORS"/> |
+| 👥 RBAC | 40+ permissions per request | <img src="https://img.shields.io/badge/Enforced-Yes-green?style=flat-square" alt="RBAC"/> |
+| ✅ Validation | Zod schemas on all endpoints | <img src="https://img.shields.io/badge/Validated-Yes-green?style=flat-square" alt="Validation"/> |
+| 📤 Uploads | MIME allowlist + 25MB limit | <img src="https://img.shields.io/badge/Restricted-Yes-green?style=flat-square" alt="Uploads"/> |
+| 📋 Audit | Every mutation logged | <img src="https://img.shields.io/badge/Logged-Yes-green?style=flat-square" alt="Audit"/> |
+| 🔒 Encryption | TLS 1.3 + AES-256 | <img src="https://img.shields.io/badge/Encrypted-Yes-green?style=flat-square" alt="Encryption"/> |
 
-## Troubleshooting
-
-### "Request failed (405)" on login
-
-- Check `VITE_API_URL` is set in Vercel dashboard
-- Verify `vercel.json` has the API proxy rewrite
-- Ensure backend is running on Render
-
-### "Cannot reach the database"
-
-- Verify `DATABASE_URL` is the PostgreSQL connection string (not HTTP URL)
-- Check `DB_SSL=true` is set
-- Ensure Supabase project is active
-
-### Evidence upload fails
-
-- Check `FILE_STORAGE_TYPE=supabase` is set
-- Verify `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are correct
-- Ensure Supabase Storage bucket `evidence` exists
-
-### GPS tracking not working
-
-- Browser must grant location permission
-- Check user has `tracking:update` permission
-- Verify consent gate was accepted
-- Check backend logs for tracking errors
-
-### Cookie not sent (login loops back)
-
-- Verify `CORS_ORIGIN` includes the exact frontend URL
-- Check `sameSite: none` is set for cross-origin
-- Ensure `secure: true` in production
+</div>
 
 ---
 
-## License
+## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Wrench.png" alt="Troubleshoot" width="35"/> Troubleshooting
 
-Private — BSC Exclusive Tracking Platform. All rights reserved.
+<div align="center">
+
+| Issue | Solution | Badge |
+|:------|:---------|:------|
+| `405` on login | Set `VITE_API_URL` in Vercel + check `vercel.json` proxy | <img src="https://img.shields.io/badge/Fix-Available-green?style=flat-square" alt="Fix"/> |
+| `Cannot reach database` | Verify `DATABASE_URL` is PostgreSQL string (not HTTP) | <img src="https://img.shields.io/badge/Fix-Available-green?style=flat-square" alt="Fix"/> |
+| Evidence upload fails | Check `FILE_STORAGE_TYPE=supabase` + credentials | <img src="https://img.shields.io/badge/Fix-Available-green?style=flat-square" alt="Fix"/> |
+| GPS not working | Grant browser location permission | <img src="https://img.shields.io/badge/Fix-Available-green?style=flat-square" alt="Fix"/> |
+| Login loop | Check `CORS_ORIGIN` + `sameSite: none` cookie | <img src="https://img.shields.io/badge/Fix-Available-green?style=flat-square" alt="Fix"/> |
+
+</div>
 
 ---
 
-**Built with ❤️ by the BSC Exclusive Team**
+<div align="center">
+
+<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Hands/Folded%20Hands.png" alt="Hands" width="80"/>
+
+### Made with ❤️ by the BSC Exclusive Team
+
+<br/>
+
+<img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white" alt="React"/>
+<img src="https://img.shields.io/badge/Express-4-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express"/>
+<img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
+<img src="https://img.shields.io/badge/TypeScript-5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript"/>
+<img src="https://img.shields.io/badge/Tailwind-4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind"/>
+
+<br/>
+
+<img src="https://komarev.com/ghpvc/?username=GaganCB2002&label=Profile%20Views&color=0ea5e9&style=for-the-badge" alt="Profile Views"/>
+
+</div>
