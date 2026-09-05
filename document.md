@@ -390,6 +390,460 @@ The audit system tracks every action in the system.
 - User agent
 - Timestamp
 
+### 4.9 Data Flow Diagrams
+
+#### 4.9.1 Authentication Flow
+
+**What happens when a user logs in:**
+
+```
+User Action          Frontend                  Backend                 Database
+─────────────────────────────────────────────────────────────────────────────
+Enters username  →   POST /api/auth/login  →   Validate credentials →  SELECT user
+and password         (send credentials)        Hash password check     WHERE username = ?
+                                                  │                      │
+                                                  ▼                      │
+                                              Create JWT token          │
+                                              Set HTTP-only cookie      │
+                                              INSERT session         ←──┘
+                                                  │
+                       ←──────────────────────────┘
+Receive user         GET /api/auth/me        →   Verify JWT         →  SELECT user
+object + permissions      (include cookie)        Load permissions      with role
+                                                  │                      │
+                       ←──────────────────────────┘
+Redirect to          Display dashboard
+dashboard
+```
+
+**Explanation:**
+- User enters credentials in the login form
+- Frontend sends POST request with username and password
+- Backend queries the database for the user
+- Backend uses bcrypt to compare the password hash
+- If valid, backend creates a JWT token with user ID and role
+- Token is set as an HTTP-only cookie (not accessible via JavaScript)
+- Session is recorded in the database for tracking
+- Frontend receives the user object with all permissions
+- Frontend redirects to the appropriate dashboard based on role
+
+---
+
+#### 4.9.2 Evidence Upload Flow
+
+**What happens when a user uploads a file:**
+
+```
+User Action          Frontend                  Backend                 Storage
+─────────────────────────────────────────────────────────────────────────────
+Selects file(s)  →   Create FormData      →   Parse multipart      →  Validate MIME type
+                      (append files)            request (Multer)       Check file size (25MB)
+                                                  │                      │
+                                                  ▼                      │
+                                              Store file             →  Upload to Supabase
+                                              (local or supabase)       or local disk
+                                                  │                      │
+                                                  ▼                      │
+                                              Generate URL              │
+                                              INSERT evidence_files  ←──┘
+                                                  │
+                       ←──────────────────────────┘
+Display file in       Show metadata +       ←   Return file URL
+evidence list         preview link
+```
+
+**Explanation:**
+- User clicks upload button and selects file(s)
+- Frontend creates a FormData object with the files
+- Frontend sends POST request with multipart/form-data content type
+- Backend uses Multer to parse the multipart request
+- Multer validates the MIME type against an allowlist
+- Multer checks the file size is under 25MB
+- File is stored either locally in `uploads/` or uploaded to Supabase Storage
+- Backend generates a public URL for the file
+- Backend inserts a record into the `evidence_files` table
+- Frontend receives the metadata and displays the file in the evidence list
+
+---
+
+#### 4.9.3 GPS Tracking Flow
+
+**What happens when location is captured:**
+
+```
+Browser             Tracking Provider         Backend              Database
+─────────────────────────────────────────────────────────────────────────────
+Every 30 min   →   navigator.geolocation  →                      │
+or manual sync      .getCurrentPosition()                        │
+                      │                                           │
+                      ▼                                           │
+                  GPS coordinates                                 │
+                  accuracy                                        │
+                  battery level                                   │
+                      │                                           │
+                      ▼                                           │
+                  POST /api/tracking   →    INSERT location_    →  tracks
+                  {lat, lng, accuracy}      user_id, latitude,
+                                             longitude, accuracy,
+                                             battery_level, tracked_at
+                      │
+                      ▼
+                  Store in localStorage
+                  Update online status
+                      │
+                      ▼
+Supervisor       GET /api/tracking/latest →  SELECT latest    →  Return all
+opens map             (include cookie)       per user              user locations
+                                             WHERE tracked_at
+                                             > NOW() - 5 min
+                      │
+                      ▼
+                  Display on Leaflet map
+                  Show online/offline status
+```
+
+**Explanation:**
+- Browser's Geolocation API is triggered (automatic or manual)
+- Browser requests GPS coordinates from the device
+- Coordinates include latitude, longitude, and accuracy
+- Frontend also captures battery level
+- Frontend sends POST request with location data
+- Backend inserts a record into the `location_tracks` table
+- Location is stored with a timestamp
+- When supervisor opens the map, backend queries latest locations
+- Backend returns all users with location in last 5 minutes
+- Frontend displays markers on a Leaflet map
+- Online status is determined by whether location was updated recently
+
+---
+
+#### 4.9.4 Checkpoint Submission Flow
+
+**What happens when a user submits a checkpoint:**
+
+```
+User Action          Frontend                  Backend                 Database
+─────────────────────────────────────────────────────────────────────────────
+Fills checkpoint →   POST /api/checkpoints →  Validate input     →  INSERT submission
+form + uploads       /submit                 Check permissions      (status: pending)
+evidence             {checkpoint_id,         Link evidence files
+                      data, evidence_ids}    Create audit log
+                                                  │
+                       ←──────────────────────────┘
+Receive               Display success
+confirmation          notification
+                                                  │
+Supervisor reviews:                                │
+                                                  │
+Approves          →   PATCH /api/admin       →   UPDATE submission →  status: approved
+                      /submissions/:id/appve      reviewed_by
+                                                  reviewed_at
+                                                  │
+Rejects           →   PATCH /api/admin       →   UPDATE submission →  status: rejected
+                      /submissions/:id/reject     supervisor_comment
+                                                  reviewed_by
+                                                  │
+Auto-approve (1hr):                                │
+                      Cron job runs            →  UPDATE submissions → status: approved
+                      every 5 minutes              WHERE status = pending
+                                                   AND submitted_at < NOW() - 1 hour
+```
+
+**Explanation:**
+- User navigates to an assigned checkpoint
+- User fills in the required data fields
+- User optionally uploads evidence files
+- Frontend sends POST request with submission data
+- Backend validates the input using Zod schemas
+- Backend checks user permissions
+- Backend creates a submission record with status "pending"
+- Backend links any uploaded evidence files
+- Backend creates an audit log entry
+- User receives a success notification
+- Supervisor can review the submission
+- Supervisor can approve or reject with comments
+- If no action within 1 hour, cron job auto-approves
+
+---
+
+#### 4.9.5 Consent Gate Flow
+
+**What happens on first visit:**
+
+```
+User Opens Site      ConsentGate              localStorage
+─────────────────────────────────────────────────────────────
+                  →  Check localStorage
+                     key: bsc_consent_accepted
+                          │
+                          ▼
+                     Key exists?
+                     ┌────┴────┐
+                     No        Yes
+                     │          │
+                     ▼          ▼
+              Show modal    Render app
+              (blocking)    directly
+                     │
+                     ▼
+              User must check:
+              ☐ Terms & Conditions
+              ☐ Privacy Policy
+              ☐ Grant Location
+                     │
+                     ▼
+              All checked?
+              ┌────┴────┐
+              No        Yes
+              │          │
+              ▼          ▼
+           Button     Save to
+           disabled   localStorage
+              │       key: bsc_consent_accepted
+              │       key: bsc_location_granted
+              │          │
+              └──────────┘
+                          │
+                          ▼
+                     Render app
+```
+
+**Explanation:**
+- When the app loads, ConsentGate checks localStorage
+- If consent was previously given, the app renders immediately
+- If not, a modal blocks the entire screen
+- User must read and check Terms & Conditions checkbox
+- User must read and check Privacy Policy checkbox
+- User must grant browser location permission
+- All three checkboxes must be checked
+- The submit button remains disabled until all are checked
+- Once all checked, consent is saved to localStorage
+- The modal closes and the app renders
+
+---
+
+#### 4.9.6 RBAC Permission Check Flow
+
+**What happens on every protected API request:**
+
+```
+Frontend Request     Backend Middleware        Permission Check       Database
+─────────────────────────────────────────────────────────────────────────────
+GET /api/admin/  →  requireAuth()         →   Extract JWT from    →  SELECT sessions
+users                 │                        cookie                 WHERE token_hash = ?
+                      │                        │                      AND expires_at > NOW()
+                      ▼                        │
+                  JWT valid?               ←───┘
+                  ┌────┴────┐
+                  No        Yes
+                  │          │
+                  ▼          ▼
+              401 Unauthorized    requirePermission('users:list')
+              Clear cookie              │
+                                        ▼
+                                  Has permission?
+                                  ┌────┴────┐
+                                  No        Yes
+                                  │          │
+                                  ▼          ▼
+                              403 Forbidden    Execute route handler
+                              Return error     Query database
+                                               Return response
+```
+
+**Explanation:**
+- Frontend sends request with HTTP-only cookie
+- `requireAuth` middleware extracts JWT from cookie
+- Middleware verifies JWT signature and expiry
+- If invalid, returns 401 and clears cookie
+- If valid, `requirePermission` middleware checks permission
+- Middleware queries user's role and permissions from database
+- If user lacks permission, returns 403 Forbidden
+- If user has permission, route handler executes
+- Route handler queries database and returns response
+
+---
+
+#### 4.9.7 Auto-Approval Cron Flow
+
+**What happens every 5 minutes:**
+
+```
+Cron Scheduler       Auto-Approve Job         Backend                 Database
+─────────────────────────────────────────────────────────────────────────────
+Every 5 min     →   Start job              →                      │
+(CRON_EXPRESSION)      │                                            │
+                       ▼                                            │
+                  Query pending        →    SELECT submissions    →  WHERE status = 'pending'
+                  submissions                JOIN assignments          AND submitted_at
+                                              JOIN checkpoints        < NOW() - INTERVAL '1 hour'
+                       │                                            │
+                       ▼                                            │
+                  Found submissions?                                │
+                  ┌────┴────┐                                       │
+                  No        Yes                                     │
+                  │          │                                       │
+                  ▼          ▼                                       │
+              Log "No      For each submission:                     │
+              pending"         │                                     │
+                               ▼                                     │
+                          UPDATE submission   →  status = 'approved'
+                          Set auto_approved      auto_approved = true
+                          reviewed_at = NOW()    reviewed_by = NULL
+                               │                                     │
+                               ▼                                     │
+                          INSERT audit_log    →  action = 'auto_approve'
+                          Log the action          entity_type = 'submission'
+```
+
+**Explanation:**
+- Cron scheduler triggers every 5 minutes
+- Job queries for submissions with status "pending" older than 1 hour
+- If no pending submissions, job logs and exits
+- For each pending submission, job updates status to "approved"
+- Job sets `auto_approved = true` to indicate system approval
+- Job sets `reviewed_at` to current timestamp
+- Job creates audit log entry for traceability
+- This prevents submissions from being stuck in "pending" forever
+
+---
+
+#### 4.9.8 Notification Flow
+
+**What happens when a notification is created:**
+
+```
+Trigger Event        Backend                   Notification           Frontend
+─────────────────────────────────────────────────────────────────────────────
+Submission      →   Check who to notify    →                      │
+approved/rejected      │                                            │
+                       ▼                                            │
+                  Build notification                                │
+                  {                                                 │
+                    user_id: supervisor_id,                         │
+                    type: 'submission_approved',                    │
+                    title: 'Submission Approved',                   │
+                    message: 'Your submission was approved',        │
+                    metadata: { submission_id }                     │
+                  }                                                 │
+                       │                                            │
+                       ▼                                            │
+                  INSERT INTO             →  notifications          │
+                  notifications              table                   │
+                       │                                            │
+                       ▼                                            │
+                  Return success        →                          │
+                                              GET /api/notifications
+                                              (polling or WebSocket)
+                                                   │
+                                                   ▼
+                                              Update notification
+                                              bell badge count
+                                              Display in dropdown
+```
+
+**Explanation:**
+- Trigger event occurs (submission approved/rejected, etc.)
+- Backend determines which users need to be notified
+- Backend builds notification object with type, title, message, metadata
+- Backend inserts record into `notifications` table
+- Frontend polls for new notifications (or uses WebSocket)
+- Frontend updates the notification bell badge count
+- User can click bell to see notification dropdown
+- User can mark notifications as read
+- User can delete individual notifications
+
+---
+
+#### 4.9.9 Audit Logging Flow
+
+**What happens when an action is logged:**
+
+```
+User Action          Audit Logger              Database
+───────────────────────────────────────────────────────────────
+User performs    →   captureAudit()         →
+action (login,        │
+submit, approve)      ▼
+                  Build audit record:
+                  {
+                    user_id: req.user.id,
+                    action: 'submission_submit',
+                    entity_type: 'checkpoint_submission',
+                    entity_id: submission.id,
+                    old_values: null,
+                    new_values: { status: 'pending' },
+                    ip_address: req.ip,
+                    user_agent: req.headers['user-agent'],
+                    created_at: NOW()
+                  }
+                       │
+                       ▼
+                  INSERT INTO             →  audit_logs
+                  audit_logs                 table
+                       │
+                       ▼
+                  Return success
+```
+
+**Explanation:**
+- User performs an action (login, submit, approve, etc.)
+- Route handler calls `captureAudit()` utility
+- Audit logger builds record with user, action, entity details
+- Logger captures old values (before change) and new values (after change)
+- Logger captures IP address and user agent from request
+- Logger inserts record into `audit_logs` table
+- Audit trail is immutable — records cannot be modified or deleted
+- Auditors can query audit_logs to verify all actions
+
+---
+
+#### 4.9.10 File Storage Flow
+
+**What happens when a file is uploaded to Supabase:**
+
+```
+Backend              Supabase Storage         Database
+───────────────────────────────────────────────────────────
+Receive file    →                          │
+from Multer          │                      │
+                     ▼                      │
+                Validate file               │
+                - MIME type check           │
+                - Size limit (25MB)         │
+                     │                      │
+                     ▼                      │
+                Generate unique             │
+                filename                    │
+                (uuid + original)           │
+                     │                      │
+                     ▼                      │
+                Upload to bucket    →  evidence/           │
+                evidence/                  │
+                     │                      │
+                     ▼                      │
+                Get public URL    ←  Return URL            │
+                     │                      │
+                     ▼                      │
+                Store metadata     →  INSERT evidence_files │
+                in database              │
+                     │                   │
+                     ▼                   │
+                Return to frontend  ←───┘
+```
+
+**Explanation:**
+- Backend receives file from Multer middleware
+- Backend validates MIME type against allowlist
+- Backend checks file size is under 25MB limit
+- Backend generates unique filename using UUID
+- Backend uploads file to Supabase Storage bucket
+- Supabase returns public URL for the file
+- Backend inserts metadata into `evidence_files` table
+- Metadata includes original name, stored name, MIME type, size, URL
+- Backend returns file metadata to frontend
+- Frontend displays file in evidence list with preview
+
 ---
 
 ## 5. Database Schema
