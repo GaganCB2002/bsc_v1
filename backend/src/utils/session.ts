@@ -24,7 +24,7 @@ export async function createSession(
 
   res.cookie(config.cookieName, token, {
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     secure: process.env.NODE_ENV === 'production' || /supabase|rds|render/i.test(config.databaseUrl),
     path: '/',
     maxAge: config.sessionTtlDays * 24 * 3600 * 1000,
@@ -40,7 +40,11 @@ export async function destroySession(token: string): Promise<void> {
 }
 
 export function clearCookie(res: Response): void {
-  res.clearCookie(config.cookieName, { path: '/' })
+  res.clearCookie(config.cookieName, {
+    path: '/',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    secure: process.env.NODE_ENV === 'production',
+  })
 }
 
 export async function verifyToken(token: string): Promise<{ uid: string } | null> {
