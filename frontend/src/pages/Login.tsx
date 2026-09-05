@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Loader2, AlertCircle, Lock, User, Eye, EyeOff } from 'lucide-react'
+import { Loader2, AlertCircle, Lock, User, Eye, EyeOff, ArrowRight, Shield, Satellite, CheckCircle2, MapPin } from 'lucide-react'
 import { post } from '../lib/api'
 import { useAuth } from '../lib/auth'
 
@@ -40,75 +40,120 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-slate-50 via-white to-sky-50">
-      {/* Left brand panel */}
-      <div className="hidden lg:flex w-[45%] bg-gradient-to-br from-[#0c4a6e] via-[#075985] to-[#1e3a5f] text-white flex-col justify-between p-10 xl:p-12 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-white rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-48 h-48 bg-sky-300 rounded-full blur-3xl" />
-        </div>
-        <div className="relative z-10">
-          <div className="flex items-center gap-3">
-            <LogoMark size={42} />
-            <div>
-              <p className="font-bold text-lg leading-tight">BSC Exclusive</p>
-              <p className="text-[10px] text-sky-200 tracking-[0.2em] font-medium">PROCESS TRACKING</p>
-            </div>
+    <div className="min-h-screen flex">
+      {/* Left Brand Panel */}
+      <div className="hidden lg:flex lg:w-[52%] relative overflow-hidden">
+        {/* Background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0c4a6e] via-[#0369a1] to-[#0ea5e9]" />
+
+        {/* Decorative elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-0 w-full h-full">
+            {/* Grid pattern */}
+            <div className="absolute inset-0 opacity-[0.03]" style={{
+              backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+              backgroundSize: '40px 40px'
+            }} />
+            {/* Glowing orbs */}
+            <div className="absolute top-[10%] left-[10%] w-80 h-80 bg-white/10 rounded-full blur-[100px]" />
+            <div className="absolute bottom-[20%] right-[5%] w-60 h-60 bg-sky-300/20 rounded-full blur-[80px]" />
+            <div className="absolute top-[60%] left-[40%] w-40 h-40 bg-blue-400/10 rounded-full blur-[60px]" />
           </div>
         </div>
-        <div className="relative z-10">
-          <h1 className="text-3xl xl:text-4xl font-extrabold leading-snug">
-            Every checkpoint.<br />Every location.<br />Fully verified.
-          </h1>
-          <p className="text-sm text-sky-100/80 mt-4 max-w-md leading-relaxed">
-            Enterprise compliance tracking with live GPS, evidence uploads, supervisor approvals and full audit trails — all on one dashboard.
-          </p>
-          <ul className="mt-6 space-y-3 text-sm text-sky-100">
-            {[
-              'Compliance checkpoints with photo & document evidence',
-              'Live GPS tracking every 30 minutes',
-              'Auto-approval after 1 hour if unreviewed',
-              'Complete audit trail on every action',
-            ].map((item) => (
-              <li key={item} className="flex items-center gap-2.5">
-                <span className="w-5 h-5 rounded-full bg-white/15 flex items-center justify-center text-[10px] shrink-0">✓</span>
-                {item}
-              </li>
-            ))}
-          </ul>
+
+        {/* Content */}
+        <div className="relative z-10 flex flex-col justify-between p-10 xl:p-14 w-full">
+          {/* Top - Logo */}
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20">
+              <LogoMark size={32} />
+            </div>
+            <div>
+              <p className="font-bold text-white text-lg leading-tight">BSC Exclusive</p>
+              <p className="text-[10px] text-sky-200 tracking-[0.25em] font-semibold">PROCESS TRACKING</p>
+            </div>
+          </div>
+
+          {/* Center - Tagline */}
+          <div className="my-auto max-w-lg">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 mb-8">
+              <Shield className="w-4 h-4 text-sky-200" />
+              <span className="text-xs font-semibold text-sky-100">Enterprise-Grade Security</span>
+            </div>
+
+            <h1 className="text-4xl xl:text-5xl font-extrabold text-white leading-[1.15] tracking-tight">
+              Track every process.
+              <br />
+              <span className="text-sky-200">Verify every location.</span>
+            </h1>
+
+            <p className="text-sky-100/70 text-sm mt-6 leading-relaxed max-w-md">
+              Enterprise compliance tracking with live GPS, evidence uploads, supervisor approvals and complete audit trails — all on one powerful dashboard.
+            </p>
+
+            {/* Feature list */}
+            <div className="mt-10 space-y-4">
+              {[
+                { icon: CheckCircle2, text: 'Compliance checkpoints with photo & document evidence' },
+                { icon: MapPin, text: 'Live GPS tracking every 30 minutes' },
+                { icon: Satellite, text: 'Smart auto-approval after 1 hour if unreviewed' },
+                { icon: Shield, text: 'Complete audit trail on every action' },
+              ].map((item) => (
+                <div key={item.text} className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+                    <item.icon className="w-4 h-4 text-sky-200" />
+                  </div>
+                  <span className="text-sm text-sky-50">{item.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Bottom - Footer */}
+          <p className="text-xs text-sky-200/40">© {new Date().getFullYear()} BSC Exclusive Tracking Platform. All rights reserved.</p>
         </div>
-        <p className="text-xs text-sky-200/60 relative z-10">© {new Date().getFullYear()} BSC Exclusive Tracking Platform. All rights reserved.</p>
       </div>
 
-      {/* Right form panel */}
-      <div className="flex-1 flex items-center justify-center p-6">
-        <div className="w-full max-w-md">
-          {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-2.5 mb-8 justify-center">
-            <LogoMark size={36} />
+      {/* Right Form Panel */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-8 bg-gradient-to-br from-slate-50 via-white to-sky-50/30">
+        <div className="w-full max-w-[400px]">
+          {/* Mobile Logo */}
+          <div className="lg:hidden flex items-center gap-3 mb-10 justify-center">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center shadow-lg shadow-sky-500/25">
+              <LogoMark size={28} />
+            </div>
             <div>
               <p className="font-bold text-slate-900 leading-tight">BSC Exclusive</p>
               <p className="text-[10px] text-sky-600 font-semibold tracking-wider">PROCESS TRACKING</p>
             </div>
           </div>
 
-          <h2 className="text-2xl font-bold text-slate-900">Welcome back</h2>
-          <p className="text-sm text-slate-500 mt-1.5 mb-6">Sign in to access your dashboard and manage checkpoints.</p>
+          {/* Welcome text */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Welcome back</h2>
+            <p className="text-sm text-slate-500 mt-2">Sign in to access your dashboard and manage checkpoints.</p>
+          </div>
 
-          <form onSubmit={submit} className="space-y-4">
-            {error && (
-              <div className="flex items-start gap-2.5 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-[1px]" />
-                <span className="leading-relaxed">{error}</span>
-              </div>
-            )}
+          {/* Error */}
+          {error && (
+            <div className="flex items-start gap-3 px-4 py-3.5 rounded-xl bg-red-50 border border-red-200/80 text-red-700 text-sm mb-6 animate-fade-in">
+              <AlertCircle className="w-4.5 h-4.5 shrink-0 mt-[1px]" />
+              <span className="leading-relaxed">{error}</span>
+            </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={submit} className="space-y-5">
+            {/* Username */}
             <div>
-              <label className="label">Username or Email</label>
+              <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Username or Email</label>
               <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <div className="absolute left-0 top-0 bottom-0 w-12 flex items-center justify-center border-r border-slate-200">
+                  <User className="w-4 h-4 text-slate-400" />
+                </div>
                 <input
-                  className="input pl-10"
-                  placeholder="e.g. admin"
+                  className="w-full pl-14 pr-4 py-3.5 bg-white border-2 border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 transition-all"
+                  placeholder="Enter your username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   autoComplete="username"
@@ -116,13 +161,17 @@ export default function Login() {
                 />
               </div>
             </div>
+
+            {/* Password */}
             <div>
-              <label className="label">Password</label>
+              <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Password</label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <div className="absolute left-0 top-0 bottom-0 w-12 flex items-center justify-center border-r border-slate-200">
+                  <Lock className="w-4 h-4 text-slate-400" />
+                </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  className="input pl-10 pr-10"
+                  className="w-full pl-14 pr-12 py-3.5 bg-white border-2 border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 transition-all"
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -131,19 +180,57 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                  className="absolute right-0 top-0 bottom-0 w-12 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
-            <button type="submit" disabled={busy} className="btn btn-primary w-full py-2.5 text-sm">
-              {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Sign in to Dashboard'}
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={busy}
+              className="w-full py-3.5 px-6 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-bold text-sm rounded-xl transition-all duration-200 shadow-lg shadow-sky-500/25 hover:shadow-xl hover:shadow-sky-500/30 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-lg flex items-center justify-center gap-2"
+            >
+              {busy ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                <>
+                  Sign in to Dashboard
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
           </form>
 
-          <p className="text-center text-xs text-slate-400 mt-6">
-            <Link to="/" className="hover:text-sky-600 transition-colors font-medium">← Back to home</Link>
+          {/* Divider */}
+          <div className="flex items-center gap-4 my-8">
+            <div className="flex-1 h-px bg-slate-200" />
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Secure Login</span>
+            <div className="flex-1 h-px bg-slate-200" />
+          </div>
+
+          {/* Security badges */}
+          <div className="flex items-center justify-center gap-6 text-[11px] text-slate-400">
+            <span className="flex items-center gap-1.5">
+              <Shield className="w-3.5 h-3.5 text-emerald-500" />
+              <span>SSL Encrypted</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 text-sky-500" />
+              <span>JWT Auth</span>
+            </span>
+          </div>
+
+          {/* Back to home */}
+          <p className="text-center text-xs text-slate-400 mt-8">
+            <Link to="/" className="hover:text-sky-600 transition-colors font-medium inline-flex items-center gap-1">
+              <span className="text-slate-300">←</span> Back to home
+            </Link>
           </p>
         </div>
       </div>
