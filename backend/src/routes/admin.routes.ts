@@ -523,6 +523,46 @@ router.delete(
   })
 )
 
+// POST /api/admin/modules/:id/clone — clone a module with all its checkpoints
+router.post(
+  '/modules/:id/clone',
+  ah(async (req, res) => {
+    const admin = req.user!
+    const { rows: modRows } = await query<{ id: string; name: string; slug: string; description: string | null; department_id: string; display_order: number }>(
+      'SELECT id, name, slug, description, department_id, display_order FROM modules WHERE id = $1',
+      [req.params.id]
+    )
+    if (modRows.length === 0) return fail(res, 404, 'Module not found')
+    const orig = modRows[0]
+
+    // Create new module with cloned name
+    const newSlug = `${orig.slug}-copy-${Date.now()}`
+    const { rows: newMod } = await query<{ id: string }>(
+      `INSERT INTO modules (name, slug, description, department_id, display_order, status, created_by)
+       VALUES ($1, $2, $3, $4, $5, 'ACTIVE', $6) RETURNING id`,
+      [`${orig.name} (Copy)`, newSlug, orig.description, orig.department_id, orig.display_order + 1, admin.id]
+    )
+    const newModuleId = newMod[0].id
+
+    // Clone all checkpoints
+    const { rows: checkpoints } = await query<{ id: string; title: string; description: string | null; score: number; is_accuracy_required: boolean; is_corrective_action_required: boolean; is_photo_required: boolean; display_order: number }>(
+      `SELECT title, description, score, is_accuracy_required, is_corrective_action_required, is_photo_required, display_order
+       FROM checkpoints WHERE module_id = $1`,
+      [req.params.id]
+    )
+    for (const cp of checkpoints) {
+      await query(
+        `INSERT INTO checkpoints (module_id, title, description, score, is_accuracy_required, is_corrective_action_required, is_photo_required, display_order, status, created_by)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'ACTIVE', $9)`,
+        [newModuleId, cp.title, cp.description, cp.score, cp.is_accuracy_required, cp.is_corrective_action_required, cp.is_photo_required, cp.display_order, admin.id]
+      )
+    }
+
+    await logAudit({ userId: admin.id, action: 'MODULE_CLONED', entityType: 'module', entityId: newModuleId, newValues: { clonedFrom: req.params.id, checkpointCount: checkpoints.length }, req })
+    ok(res, { id: newModuleId, name: `${orig.name} (Copy)`, checkpointCount: checkpoints.length })
+  })
+)
+
 // ============================================================
 // CHECKPOINTS
 // ============================================================
