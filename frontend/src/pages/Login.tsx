@@ -1,20 +1,13 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Loader2, AlertCircle, Lock, User, Eye, EyeOff, Info } from 'lucide-react'
+import { Loader2, AlertCircle, Lock, User, Eye, EyeOff } from 'lucide-react'
 import { post } from '../lib/api'
 import { useAuth } from '../lib/auth'
 
 function LogoMark({ size = 40, className = '' }: { size?: number; className?: string }) {
   return <img src="/bsc-logo.png" alt="BSC Exclusive" width={size} height={size} className={`rounded-lg object-contain ${className}`} />
 }
-
-const DEMO_ACCOUNTS = [
-  { role: 'Admin', username: 'admin', password: 'Admin@123456', color: 'bg-sky-500' },
-  { role: 'User', username: 'john.doe', password: 'User@123456', color: 'bg-emerald-500' },
-  { role: 'Supervisor', username: 'jane.smith', password: 'Supervisor@123', color: 'bg-violet-500' },
-  { role: 'Manager', username: 'mike.ross', password: 'Manager@123', color: 'bg-amber-500' },
-]
 
 export default function Login() {
   const [username, setUsername] = useState('')
@@ -44,12 +37,6 @@ export default function Login() {
     } finally {
       setBusy(false)
     }
-  }
-
-  const quickFill = (u: string, p: string) => {
-    setUsername(u)
-    setPassword(p)
-    setError('')
   }
 
   return (
@@ -154,53 +141,6 @@ export default function Login() {
               {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Sign in to Dashboard'}
             </button>
           </form>
-
-          {/* Demo accounts - Admin highlighted */}
-          <div className="mt-6 card overflow-hidden">
-            <div className="px-4 py-3 border-b border-border bg-slate-50">
-              <div className="flex items-center gap-2">
-                <Info className="w-3.5 h-3.5 text-slate-500" />
-                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Demo Login Credentials</p>
-              </div>
-            </div>
-            <div className="p-3 space-y-2">
-              {DEMO_ACCOUNTS.map((acc) => (
-                <button
-                  key={acc.username}
-                  onClick={() => quickFill(acc.username, acc.password)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all text-left group ${
-                    acc.username === 'admin'
-                      ? 'border-sky-300 bg-sky-50 hover:bg-sky-100 ring-1 ring-sky-200'
-                      : 'border-border hover:border-sky-200 hover:bg-sky-50/50'
-                  }`}
-                >
-                  <span className={`w-8 h-8 rounded-lg ${acc.color} text-white text-[10px] font-extrabold flex items-center justify-center shrink-0`}>
-                    {acc.role[0]}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className={`text-xs font-bold ${acc.username === 'admin' ? 'text-sky-700' : 'text-slate-700'}`}>
-                        {acc.role}
-                      </span>
-                      {acc.username === 'admin' && (
-                        <span className="px-1.5 py-[1px] rounded bg-sky-500 text-white text-[9px] font-bold tracking-wide">
-                          PRIMARY
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3 mt-0.5">
-                      <span className="text-[11px] font-mono text-slate-500">{acc.username}</span>
-                      <span className="text-slate-300">·</span>
-                      <span className="text-[11px] font-mono text-slate-400">{acc.password}</span>
-                    </div>
-                  </div>
-                  <span className="text-[10px] font-semibold text-sky-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                    FILL →
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
 
           <p className="text-center text-xs text-slate-400 mt-6">
             <Link to="/" className="hover:text-sky-600 transition-colors font-medium">← Back to home</Link>

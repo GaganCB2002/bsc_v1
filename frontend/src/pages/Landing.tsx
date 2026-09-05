@@ -1,10 +1,9 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ShieldCheck,
   FolderOpen,
   ListChecks,
-  Users,
   CheckCircle2,
   Satellite,
   FileText,
@@ -18,10 +17,6 @@ import {
   Zap,
   ScrollText,
   BarChart3,
-  Info,
-  X,
-  Globe,
-  Shield,
   AlertTriangle,
 } from 'lucide-react'
 import { get } from '../lib/api'
@@ -68,34 +63,11 @@ const RATE_LIMITS = [
 
 export default function Landing() {
   const [stats, setStats] = useState<Stats | null>(null)
-  const [showLocationPrompt, setShowLocationPrompt] = useState(false)
-  const [locationGranted, setLocationGranted] = useState(false)
-  const [showPrivacy, setShowPrivacy] = useState(false)
-  const [showTerms, setShowTerms] = useState(false)
-  const [showCookies, setShowCookies] = useState(false)
 
   useEffect(() => {
     get<Stats>('/api/public/stats')
       .then(setStats)
       .catch(() => undefined)
-  }, [])
-
-  const requestLocation = useCallback(() => {
-    if (!('geolocation' in navigator)) {
-      alert('Geolocation is not supported by your browser.')
-      return
-    }
-    navigator.geolocation.getCurrentPosition(
-      () => {
-        setLocationGranted(true)
-        setShowLocationPrompt(false)
-      },
-      () => {
-        setLocationGranted(false)
-        setShowLocationPrompt(false)
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    )
   }, [])
 
   return (
@@ -147,79 +119,13 @@ export default function Landing() {
             <Link to="/login" className="inline-flex items-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 text-white font-bold text-sm px-7 py-3 rounded-xl hover:from-sky-600 hover:to-blue-700 transition-all shadow-lg shadow-sky-500/25">
               Launch Application <ArrowRight className="w-4 h-4" />
             </Link>
-            <button
-              onClick={() => setShowLocationPrompt(true)}
-              className="inline-flex items-center gap-2 bg-white border border-slate-200 text-slate-700 font-bold text-sm px-7 py-3 rounded-xl hover:border-sky-300 hover:bg-sky-50 transition-all shadow-sm"
-            >
-              <MapPin className="w-4 h-4" /> Allow Location Access
-            </button>
             <div className="flex items-center gap-4 text-xs text-slate-500">
-              <span className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-sky-500" /> Live tracking
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5 text-sky-500" /> Auto-approval
-              </span>
+              <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-sky-500" /> Live tracking</span>
+              <span className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5 text-sky-500" /> Auto-approval</span>
             </div>
           </div>
         </div>
       </section>
-
-      {/* Location Permission Prompt */}
-      {showLocationPrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative animate-fade-in">
-            <button onClick={() => setShowLocationPrompt(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
-              <X className="w-5 h-5" />
-            </button>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/25">
-                <MapPin className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">Location Access</h3>
-                <p className="text-xs text-slate-500">Required for live GPS tracking</p>
-              </div>
-            </div>
-            <div className="bg-sky-50 border border-sky-200 rounded-xl p-4 mb-4">
-              <div className="flex items-start gap-2.5">
-                <Info className="w-4 h-4 text-sky-600 mt-0.5 shrink-0" />
-                <div className="text-xs text-sky-800 leading-relaxed">
-                  <p className="font-bold mb-1">Why do we need your location?</p>
-                  <p>BSC Exclusive uses GPS to verify that team members are at assigned locations during checkpoint submissions. Your location is synced every 30 minutes while you are signed in.</p>
-                </div>
-              </div>
-            </div>
-            <ul className="space-y-2 mb-5 text-xs text-slate-600">
-              {[
-                'Location data is encrypted and stored securely',
-                'Only admins and supervisors can view team locations',
-                'You can revoke permission anytime in browser settings',
-                'Works fully even without location permission',
-              ].map((t) => (
-                <li key={t} className="flex items-start gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
-                  {t}
-                </li>
-              ))}
-            </ul>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowLocationPrompt(false)}
-                className="btn btn-outline flex-1"
-              >
-                Maybe Later
-              </button>
-              <button
-                onClick={requestLocation}
-                className="btn btn-primary flex-1"
-              >
-                Yep, OK
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Live stats */}
       <section className="max-w-6xl mx-auto px-4 -mt-8 relative z-10">
@@ -282,18 +188,6 @@ export default function Landing() {
               </div>
             ))}
           </div>
-          <div className="card mt-8 p-5 flex items-start gap-4 border-sky-200 bg-gradient-to-r from-sky-50 to-blue-50">
-            <div className="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-sky-500/25">
-              <UserPlus className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-slate-900">Account creation is admin-only</p>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                There is no public registration. Only administrators can create accounts — each with a role, department, employee code and unique username.
-                Admins can also deactivate accounts, reset passwords and view every session.
-              </p>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -322,19 +216,6 @@ export default function Landing() {
                 </li>
               ))}
             </ul>
-            {!locationGranted && (
-              <button
-                onClick={() => setShowLocationPrompt(true)}
-                className="mt-6 inline-flex items-center gap-2 bg-emerald-500 text-white font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-500/25"
-              >
-                <MapPin className="w-4 h-4" /> Enable Location Now
-              </button>
-            )}
-            {locationGranted && (
-              <div className="mt-6 flex items-center gap-2 text-emerald-600 text-sm font-bold">
-                <CheckCircle2 className="w-5 h-5" /> Location access granted
-              </div>
-            )}
           </div>
           <div className="card p-6 shadow-xl border border-slate-100">
             <div className="flex items-center gap-2 mb-4">
@@ -387,13 +268,6 @@ export default function Landing() {
               </div>
             ))}
           </div>
-          <div className="card mt-6 p-4 flex items-start gap-3 border-amber-200 bg-amber-50">
-            <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-            <p className="text-xs text-amber-800 leading-relaxed">
-              <span className="font-bold">Exceeding limits?</span> Requests will receive a <code className="bg-amber-100 px-1 rounded">429 Too Many Requests</code> response.
-              If you need higher limits for your organization, contact your administrator to adjust the rate limit configuration.
-            </p>
-          </div>
         </div>
       </section>
 
@@ -409,7 +283,7 @@ export default function Landing() {
             { icon: Lock, title: 'JWT sessions', desc: 'Signed tokens in HTTP-only cookies, revocable server-side session rows.' },
             { icon: ShieldCheck, title: 'Granular RBAC', desc: '40+ permissions checked on every API request, not just in the UI.' },
             { icon: ScrollText, title: 'Full audit trail', desc: 'Every state change logged with actor, before/after JSON, IP and user agent.' },
-            { icon: Shield, title: 'Data encryption', desc: 'All data encrypted in transit (TLS 1.3) and at rest (AES-256).' },
+            { icon: ShieldCheck, title: 'Data encryption', desc: 'All data encrypted in transit (TLS 1.3) and at rest (AES-256).' },
           ].map((s) => (
             <div key={s.title} className="card p-5 text-center hover:shadow-md transition-shadow">
               <div className="w-11 h-11 mx-auto rounded-xl bg-gradient-to-br from-sky-50 to-blue-50 text-sky-600 flex items-center justify-center mb-3">
@@ -419,33 +293,6 @@ export default function Landing() {
               <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">{s.desc}</p>
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* Demo accounts */}
-      <section className="max-w-6xl mx-auto px-4 pb-20">
-        <div className="card p-6 sm:p-8 shadow-xl border border-slate-100">
-          <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
-            <div>
-              <h2 className="text-xl font-extrabold text-slate-900">Try it now with demo accounts</h2>
-              <p className="text-xs text-slate-500 mt-1">Accounts are created only by administrators — use these seeded logins to explore every role.</p>
-            </div>
-            <Link to="/login" className="btn btn-primary">Sign in <ArrowRight className="w-4 h-4" /></Link>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {[
-              { role: 'Admin', user: 'admin', pass: 'Admin@123456', tone: 'bg-sky-100 text-sky-700 border-sky-200' },
-              { role: 'Supervisor', user: 'jane.smith', pass: 'Supervisor@123', tone: 'bg-cyan-100 text-cyan-700 border-cyan-200' },
-              { role: 'Manager', user: 'mike.ross', pass: 'Manager@123', tone: 'bg-blue-100 text-blue-700 border-blue-200' },
-              { role: 'User', user: 'john.doe', pass: 'User@123456', tone: 'bg-slate-100 text-slate-700 border-slate-200' },
-            ].map((d) => (
-              <div key={d.user} className={`rounded-xl border p-4 text-center ${d.tone} hover:shadow-md transition-shadow`}>
-                <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-white/60">{d.role}</span>
-                <p className="text-sm font-mono font-bold text-slate-800 mt-2">{d.user}</p>
-                <p className="text-[11px] font-mono text-slate-500">{d.pass}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -480,167 +327,9 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border bg-white">
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-3">
-              <LogoMark size={28} />
-              <div>
-                <p className="text-xs font-bold text-slate-700">BSC Exclusive</p>
-                <p className="text-[10px] text-slate-400">© {new Date().getFullYear()} All rights reserved</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 text-xs text-slate-500">
-              <button onClick={() => setShowPrivacy(true)} className="hover:text-sky-600 transition-colors font-medium flex items-center gap-1">
-                <Shield className="w-3 h-3" /> Privacy Policy
-              </button>
-              <button onClick={() => setShowTerms(true)} className="hover:text-sky-600 transition-colors font-medium flex items-center gap-1">
-                <ScrollText className="w-3 h-3" /> Terms & Conditions
-              </button>
-              <button onClick={() => setShowCookies(true)} className="hover:text-sky-600 transition-colors font-medium flex items-center gap-1">
-                <Globe className="w-3 h-3" /> Cookie Policy
-              </button>
-            </div>
-          </div>
-        </div>
+      <footer className="border-t border-border py-6 text-center text-xs text-slate-400">
+        © {new Date().getFullYear()} BSC Exclusive — Enterprise Process & Compliance Tracking Platform
       </footer>
-
-      {/* Privacy Policy Modal */}
-      {showPrivacy && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6 relative animate-fade-in">
-            <button onClick={() => setShowPrivacy(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
-              <X className="w-5 h-5" />
-            </button>
-            <div className="flex items-center gap-3 mb-4">
-              <Shield className="w-6 h-6 text-sky-600" />
-              <h2 className="text-xl font-extrabold text-slate-900">Privacy Policy</h2>
-            </div>
-            <div className="text-sm text-slate-600 leading-relaxed space-y-4">
-              <p><strong>Last updated:</strong> September 2026</p>
-              <div>
-                <h3 className="font-bold text-slate-900 mb-1">1. Information We Collect</h3>
-                <p>We collect account information (name, email, employee code), GPS location data (during active sessions), submission content and evidence files, audit logs (IP address, user agent, timestamps), and usage analytics.</p>
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 mb-1">2. How We Use Your Information</h3>
-                <p>Your data is used for compliance tracking, location verification, submission review and approval, audit trail maintenance, and platform improvement. We do not sell or share your personal data with third parties for marketing purposes.</p>
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 mb-1">3. Location Data</h3>
-                <p>GPS coordinates are collected every 30 minutes during active sessions. Location data is encrypted, stored securely, and accessible only to authorized administrators and supervisors. You may revoke location permission through your browser settings at any time.</p>
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 mb-1">4. Data Security</h3>
-                <p>All data is encrypted in transit using TLS 1.3 and at rest using AES-256 encryption. We implement role-based access control, JWT authentication, and maintain comprehensive audit logs for all data access.</p>
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 mb-1">5. Data Retention</h3>
-                <p>Account data is retained for the duration of your employment. Submission and audit data may be retained for compliance purposes as required by your organization's policies. Location data is retained for 90 days.</p>
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 mb-1">6. Your Rights</h3>
-                <p>You have the right to access, correct, or request deletion of your personal data. Contact your administrator to exercise these rights. You may also export your data at any time through the profile settings.</p>
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 mb-1">7. Contact</h3>
-                <p>For privacy-related inquiries, contact your organization's administrator or reach out to our support team through the application.</p>
-              </div>
-            </div>
-            <button onClick={() => setShowPrivacy(false)} className="btn btn-primary mt-6 w-full">I Understand</button>
-          </div>
-        </div>
-      )}
-
-      {/* Terms & Conditions Modal */}
-      {showTerms && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6 relative animate-fade-in">
-            <button onClick={() => setShowTerms(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
-              <X className="w-5 h-5" />
-            </button>
-            <div className="flex items-center gap-3 mb-4">
-              <ScrollText className="w-6 h-6 text-sky-600" />
-              <h2 className="text-xl font-extrabold text-slate-900">Terms & Conditions</h2>
-            </div>
-            <div className="text-sm text-slate-600 leading-relaxed space-y-4">
-              <p><strong>Last updated:</strong> September 2026</p>
-              <div>
-                <h3 className="font-bold text-slate-900 mb-1">1. Acceptance of Terms</h3>
-                <p>By accessing and using BSC Exclusive, you agree to be bound by these Terms & Conditions. If you do not agree, do not use the platform.</p>
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 mb-1">2. Account Usage</h3>
-                <p>Accounts are created exclusively by administrators. You are responsible for maintaining the confidentiality of your credentials. Do not share your account with others. Notify your administrator immediately of any unauthorized access.</p>
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 mb-1">3. Acceptable Use</h3>
-                <p>You may use the platform only for its intended purpose: compliance tracking, checkpoint submissions, and location verification. You may not attempt to circumvent security measures, access unauthorized data, or interfere with platform operations.</p>
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 mb-1">4. Location Tracking Consent</h3>
-                <p>By using this platform, you consent to periodic GPS location collection during active sessions. Location data is used for compliance verification and is handled in accordance with our Privacy Policy.</p>
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 mb-1">5. Data Accuracy</h3>
-                <p>You are responsible for the accuracy of all submissions, evidence, and information provided through the platform. Submitting false or misleading information may result in disciplinary action as determined by your organization.</p>
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 mb-1">6. Intellectual Property</h3>
-                <p>The platform and its original content, features, and functionality are owned by BSC Exclusive and are protected by copyright, trademark, and other intellectual property laws.</p>
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 mb-1">7. Limitation of Liability</h3>
-                <p>BSC Exclusive shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of or inability to use the platform.</p>
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 mb-1">8. Termination</h3>
-                <p>Your access may be suspended or terminated by your administrator at any time. Upon termination, your right to use the platform ceases immediately. Data retention is governed by your organization's policies.</p>
-              </div>
-            </div>
-            <button onClick={() => setShowTerms(false)} className="btn btn-primary mt-6 w-full">I Accept</button>
-          </div>
-        </div>
-      )}
-
-      {/* Cookie Policy Modal */}
-      {showCookies && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6 relative animate-fade-in">
-            <button onClick={() => setShowCookies(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
-              <X className="w-5 h-5" />
-            </button>
-            <div className="flex items-center gap-3 mb-4">
-              <Globe className="w-6 h-6 text-sky-600" />
-              <h2 className="text-xl font-extrabold text-slate-900">Cookie Policy</h2>
-            </div>
-            <div className="text-sm text-slate-600 leading-relaxed space-y-4">
-              <p><strong>Last updated:</strong> September 2026</p>
-              <div>
-                <h3 className="font-bold text-slate-900 mb-1">1. What Are Cookies</h3>
-                <p>Cookies are small text files stored on your device when you visit our platform. They help us provide a better experience and enable core platform functionality.</p>
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 mb-1">2. Essential Cookies</h3>
-                <p>We use essential cookies for authentication (session tokens), security (CSRF protection), and platform functionality. These cookies are necessary for the platform to work and cannot be disabled.</p>
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 mb-1">3. Session Cookies</h3>
-                <p>Your session cookie contains a signed JWT token that identifies your account. Session cookies expire after 7 days of inactivity or when you sign out.</p>
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 mb-1">4. No Tracking Cookies</h3>
-                <p>We do not use advertising cookies, third-party tracking cookies, or analytics cookies that track your behavior across other websites.</p>
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 mb-1">5. Managing Cookies</h3>
-                <p>You can manage cookies through your browser settings. Disabling essential cookies may prevent you from using the platform. To sign out, use the Sign Out button in the application.</p>
-              </div>
-            </div>
-            <button onClick={() => setShowCookies(false)} className="btn btn-primary mt-6 w-full">Got It</button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

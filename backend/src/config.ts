@@ -13,10 +13,19 @@ function resolveUploadDir(): string {
 const isProduction = process.env.NODE_ENV === 'production'
 const databaseUrl = process.env.DATABASE_URL || ''
 
+if (databaseUrl && /^https?:\/\//i.test(databaseUrl)) {
+  console.error(`[config] FATAL: DATABASE_URL is set to an HTTP/HTTPS URL ("${databaseUrl}").`)
+  console.error('[config] DATABASE_URL must be a PostgreSQL connection string, NOT the Supabase web URL.')
+  console.error('[config] For Supabase on Render, use the Session Pooler URI (IPv4 compatible):')
+  console.error('[config] postgresql://postgres.PROJECT_REF:YOUR_PASSWORD@aws-0-REGION.pooler.supabase.com:6543/postgres')
+  console.error('[config] Find it in Supabase: Project Settings → Database → Connection string → URI (Session mode, port 6543)')
+  process.exit(1)
+}
+
 if (!databaseUrl && isProduction) {
   console.error('[config] FATAL: DATABASE_URL environment variable is not set.')
   console.error('[config] In the Render dashboard, go to your service → Environment → add DATABASE_URL')
-  console.error('[config] Example: postgresql://user:password@host:5432/dbname')
+  console.error('[config] Example: postgresql://postgres.PROJECT_REF:YOUR_PASSWORD@aws-0-REGION.pooler.supabase.com:6543/postgres')
   process.exit(1)
 }
 
@@ -26,7 +35,7 @@ export const config = {
     databaseUrl || 'postgresql://postgres:postgres@localhost:5432/bsc_exclusive_tracking',
   dbSsl:
     process.env.DB_SSL === 'true' ||
-    /(supabase|rds\.amazonaws|render\.com)/i.test(databaseUrl),
+    (process.env.DB_SSL !== 'false' && /(supabase|rds\.amazonaws|render\.com)/i.test(databaseUrl)),
   sessionSecret:
     process.env.SESSION_SECRET || 'bsc-exclusive-tracking-dev-secret-key-0123456789',
   cookieName: 'bsc_session',
