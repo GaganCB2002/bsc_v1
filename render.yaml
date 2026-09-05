@@ -19,7 +19,7 @@ services:
       - key: SESSION_SECRET
         generateValue: true
       - key: CORS_ORIGIN
-        sync: false
+        value: https://bsc-v1-seven.vercel.app
       - key: FILE_STORAGE_TYPE
         value: supabase
       - key: SUPABASE_URL
