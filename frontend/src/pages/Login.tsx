@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Loader2, AlertCircle, Lock, User, Eye, EyeOff, ArrowRight, Shield, Satellite, CheckCircle2, MapPin } from 'lucide-react'
+import { Loader2, AlertCircle, Lock, User, Eye, EyeOff, ArrowRight, Shield, Satellite, CheckCircle2, MapPin, KeyRound } from 'lucide-react'
 import { post } from '../lib/api'
 import { useAuth } from '../lib/auth'
 
 function LogoMark({ size = 40, className = '' }: { size?: number; className?: string }) {
   return <img src="/bsc-logo.png" alt="BSC Exclusive" width={size} height={size} className={`rounded-lg object-contain ${className}`} />
 }
+
+const ADMIN_CREDENTIALS = { username: 'admin', password: 'Admin@123456' }
 
 export default function Login() {
   const [username, setUsername] = useState('')
@@ -18,6 +20,12 @@ export default function Login() {
   const navigate = useNavigate()
   const location = useLocation()
   const { refresh } = useAuth()
+
+  const fillAdmin = () => {
+    setUsername(ADMIN_CREDENTIALS.username)
+    setPassword(ADMIN_CREDENTIALS.password)
+    setError('')
+  }
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
@@ -226,8 +234,26 @@ export default function Login() {
             </span>
           </div>
 
+          {/* Admin Quick Login */}
+          <div className="mt-8">
+            <button
+              type="button"
+              onClick={fillAdmin}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed border-sky-200 bg-sky-50/50 hover:bg-sky-50 hover:border-sky-300 transition-all group"
+            >
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-sky-500/20">
+                <KeyRound className="w-4.5 h-4.5" />
+              </div>
+              <div className="text-left flex-1">
+                <p className="text-sm font-bold text-slate-800 group-hover:text-sky-700 transition-colors">Admin Login</p>
+                <p className="text-[11px] text-slate-500">Click to auto-fill admin credentials</p>
+              </div>
+              <span className="text-[10px] font-bold text-sky-500 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-wider">Fill →</span>
+            </button>
+          </div>
+
           {/* Back to home */}
-          <p className="text-center text-xs text-slate-400 mt-8">
+          <p className="text-center text-xs text-slate-400 mt-6">
             <Link to="/" className="hover:text-sky-600 transition-colors font-medium inline-flex items-center gap-1">
               <span className="text-slate-300">←</span> Back to home
             </Link>
