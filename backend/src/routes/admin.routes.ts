@@ -157,9 +157,9 @@ const createUserSchema = z.object({
   employeeCode: z.string().min(2).max(50),
   fullName: z.string().min(2).max(150),
   email: z.string().email().max(150),
-  phone: z.string().max(30).nullable().optional(),
+  phone: z.string().regex(/^\d{10}$/, 'Phone must be exactly 10 digits').nullable().optional(),
   username: z.string().min(3).max(50),
-  password: z.string().min(8).max(100),
+  password: z.string().min(8).max(100).regex(/^(?=.*[A-Za-z])(?=.*\d)/, 'Password must contain both letters and numbers'),
   roleId: z.string().uuid(),
   departmentId: z.string().uuid().nullable().optional(),
   reportingManagerId: z.string().uuid().nullable().optional(),
@@ -270,7 +270,7 @@ router.post(
   '/users/:id/reset-password',
   ah(async (req, res) => {
     const admin = req.user!
-    const parsed = z.object({ newPassword: z.string().min(8).max(100) }).safeParse(req.body)
+    const parsed = z.object({ newPassword: z.string().min(8).max(100).regex(/^(?=.*[A-Za-z])(?=.*\d)/, 'Password must contain both letters and numbers') }).safeParse(req.body)
     if (!parsed.success) return fail(res, 400, 'New password must be at least 8 characters')
     const { rows } = await query<{ id: string }>('SELECT id FROM users WHERE id = $1', [req.params.id])
     if (rows.length === 0) return fail(res, 404, 'User not found')

@@ -76,6 +76,30 @@ export default function AdminUsers() {
     e.preventDefault()
     setBusy(true)
     setFormError('')
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(form.email)) {
+      setFormError('Please enter a valid email address')
+      setBusy(false)
+      return
+    }
+
+    // Phone validation (exactly 10 digits, if provided)
+    if (form.phone && !/^\d{10}$/.test(form.phone)) {
+      setFormError('Phone number must be exactly 10 digits')
+      setBusy(false)
+      return
+    }
+
+    // Password validation (alphanumeric, min 8 chars)
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/
+    if (!passwordRegex.test(form.password)) {
+      setFormError('Password must be at least 8 characters and contain both letters and numbers')
+      setBusy(false)
+      return
+    }
+
     try {
       await post('/api/admin/users', {
         employeeCode: form.employeeCode, fullName: form.fullName, email: form.email,
@@ -115,6 +139,15 @@ export default function AdminUsers() {
     if (!editing) return
     setBusy(true)
     setFormError('')
+
+    // Password validation (alphanumeric, min 8 chars)
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/
+    if (!passwordRegex.test(newPassword)) {
+      setFormError('Password must be at least 8 characters and contain both letters and numbers')
+      setBusy(false)
+      return
+    }
+
     try {
       await post(`/api/admin/users/${editing.id}/reset-password`, { newPassword })
       setModal(null)
@@ -225,10 +258,20 @@ export default function AdminUsers() {
           <div className="grid grid-cols-2 gap-3">
             <div><label className="label">Full name *</label><input className="input" value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} required /></div>
             <div><label className="label">Employee code *</label><input className="input" value={form.employeeCode} onChange={(e) => setForm({ ...form, employeeCode: e.target.value })} required /></div>
-            <div><label className="label">Email *</label><input className="input" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></div>
-            <div><label className="label">Phone</label><input className="input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
+            <div>
+              <label className="label">Email *</label>
+              <input className="input" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required placeholder="user@example.com" />
+            </div>
+            <div>
+              <label className="label">Phone (10 digits)</label>
+              <input className="input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })} placeholder="9876543210" maxLength={10} />
+            </div>
             <div><label className="label">Username *</label><input className="input" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} required /></div>
-            <div><label className="label">Password * (min 8 chars)</label><input className="input" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required /></div>
+            <div>
+              <label className="label">Password *</label>
+              <input className="input" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required minLength={8} placeholder="Min 8 chars, letters + numbers" />
+              <p className="text-[10px] text-slate-400 mt-1">Must contain both letters and numbers, minimum 8 characters</p>
+            </div>
             <div>
               <label className="label">Role *</label>
               <select className="input" value={form.roleId} onChange={(e) => setForm({ ...form, roleId: e.target.value })} required>
@@ -280,8 +323,9 @@ export default function AdminUsers() {
         <form onSubmit={submitPassword} className="space-y-3">
           {formError && <p className="text-xs text-danger font-semibold">{formError}</p>}
           <div>
-            <label className="label">New password (min 8 chars)</label>
-            <input className="input" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
+            <label className="label">New password</label>
+            <input className="input" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={8} placeholder="Min 8 chars, letters + numbers" />
+            <p className="text-[10px] text-slate-400 mt-1">Must contain both letters and numbers, minimum 8 characters</p>
           </div>
           <p className="text-[11px] text-text-muted">The user will be asked to change this password at next login, and all their sessions will be revoked.</p>
           <button className="btn btn-primary w-full" disabled={busy}>{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Reset password'}</button>
