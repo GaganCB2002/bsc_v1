@@ -5,6 +5,7 @@ import './index.css'
 import App from './App'
 import { AuthProvider } from './lib/auth'
 import { TrackingProvider } from './lib/tracking'
+import { ThemeProvider } from './lib/theme'
 import DevToolsGuard from './components/DevToolsGuard'
 import ConsentGate from './components/ConsentGate'
 
@@ -12,12 +13,14 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ConsentGate>
       <BrowserRouter>
-        <AuthProvider>
-          <TrackingProvider>
-            <DevToolsGuard />
-            <App />
-          </TrackingProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <TrackingProvider>
+              <DevToolsGuard />
+              <App />
+            </TrackingProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </BrowserRouter>
     </ConsentGate>
   </StrictMode>
