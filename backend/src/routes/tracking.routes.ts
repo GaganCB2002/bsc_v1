@@ -25,11 +25,16 @@ router.post(
     if (!parsed.success) return fail(res, 400, 'Invalid location data')
 
     const t = parsed.data
+    const { getClientIp, parseDevice } = await import('../utils/deviceInfo.js')
+    const clientIp = getClientIp(req)
+    const userAgent = (req.headers['user-agent'] || null) as string | null
+    const dev = parseDevice(userAgent)
+
     const { rows } = await query<{ id: string; tracked_at: string }>(
-      `INSERT INTO location_tracks (user_id, latitude, longitude, accuracy, address, battery_level)
-       VALUES ($1,$2,$3,$4,$5,$6)
+      `INSERT INTO location_tracks (user_id, latitude, longitude, accuracy, address, battery_level, ip_address, device_info, device_type)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
        RETURNING id, tracked_at`,
-      [user.id, t.latitude, t.longitude, t.accuracy ?? null, t.address ?? null, t.batteryLevel ?? null]
+      [user.id, t.latitude, t.longitude, t.accuracy ?? null, t.address ?? null, t.batteryLevel ?? null, clientIp, dev.formatted, dev.deviceType]
     )
     ok(res, { trackId: rows[0].id, trackedAt: rows[0].tracked_at })
   })
@@ -77,11 +82,17 @@ router.get(
       battery_level: number | null
       tracked_at: string
       online: boolean
+      ip_address: string | null
+      device_info: string | null
+      device_type: string | null
     }>(
       `SELECT DISTINCT ON (u.id)
               u.id AS user_id, u.full_name, u.employee_code, r.name AS role_name,
               d.name AS department_name, u.profile_image,
               lt.latitude, lt.longitude, lt.accuracy, lt.address, lt.battery_level, lt.tracked_at,
+              COALESCE(lt.ip_address, u.last_login_ip) AS ip_address,
+              COALESCE(lt.device_info, u.last_login_device) AS device_info,
+              COALESCE(lt.device_type, u.last_login_device_type, 'Desktop') AS device_type,
               (lt.tracked_at >= NOW() - ($1 * INTERVAL '1 minute')) AS online
        FROM users u
        JOIN roles r ON r.id = u.role_id
@@ -114,6 +125,9 @@ router.get(
         batteryLevel: r.battery_level,
         trackedAt: r.tracked_at,
         online: r.online,
+        ipAddress: r.ip_address,
+        deviceInfo: r.device_info,
+        deviceType: r.device_type,
       })),
       offices,
     })

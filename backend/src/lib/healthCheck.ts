@@ -1,3 +1,4 @@
+import os from 'node:os'
 import { getPoolStats } from './dbPool.js'
 import { dbCircuit, externalCircuit } from './circuitBreaker.js'
 import { apiQueue } from './requestQueue.js'
@@ -29,8 +30,8 @@ export function getHealthCheck() {
       circuitBreaker: externalCircuit.getStats(),
     },
     cpu: {
-      loadAvg: require('os').loadavg().map((l: number) => Math.round(l * 100) / 100),
-      cpuCount: require('os').cpus().length,
+      loadAvg: os.loadavg().map((l: number) => Math.round(l * 100) / 100),
+      cpuCount: os.cpus().length,
     },
   }
 }

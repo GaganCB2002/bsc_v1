@@ -84,6 +84,7 @@ const ADMIN_NAV: NavItem[] = [
   { to: '/admin/checkpoints', label: 'Checkpoints', icon: ListChecks },
   { to: '/admin/assignments', label: 'Assignments', icon: CheckSquare },
   { to: '/admin/submissions', label: 'Submissions', icon: ClipboardCheck },
+  { to: '/admin/calendar', label: 'Calendar', icon: CalendarDays },
   { to: '/admin/evidence', label: 'Evidence', icon: Paperclip },
   { to: '/admin/reports', label: 'Reports', icon: FileBarChart },
   { to: '/admin/audit-logs', label: 'Audit Logs', icon: ScrollText },

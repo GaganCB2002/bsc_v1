@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Users, Building2, FolderOpen, ListChecks, ClipboardCheck, Paperclip,
-  Satellite, CheckCircle2, Clock, AlertTriangle, Activity, ArrowRight, MapPin, ShieldCheck, Search,
+  Satellite, CheckCircle2, Clock, AlertTriangle, Activity, ArrowRight, MapPin, ShieldCheck, Search, CalendarDays,
+  Smartphone, Monitor, Laptop, Globe, Wifi, Copy, Check,
 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from 'recharts'
 import { get } from '../../lib/api'
@@ -33,6 +34,16 @@ interface AdminDashboardData {
   recentSubmissions: { id: string; user_name: string; checkpoint_title: string; module_name: string; status: string; submission_date: string; updated_at: string }[]
   latestTracks: { full_name: string; role_name: string; department_name: string | null; latitude: number; longitude: number; address: string | null; battery_level: number | null; tracked_at: string; online: boolean }[]
   recentAudit: { id: string; user_name: string | null; action: string; entity_type: string; created_at: string }[]
+  recentActiveDevices?: {
+    user_id: string
+    full_name: string
+    employee_code: string
+    role_name: string
+    ip_address: string
+    device_info: string
+    device_type: string
+    last_login_at: string
+  }[]
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -44,7 +55,14 @@ export default function AdminDashboard() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [copiedIp, setCopiedIp] = useState<string | null>(null)
   const chart = useChartTheme()
+
+  const copyIp = (ip: string) => {
+    navigator.clipboard?.writeText(ip)
+    setCopiedIp(ip)
+    setTimeout(() => setCopiedIp(null), 2000)
+  }
 
   const load = () => {
     setLoading(true)
@@ -85,6 +103,32 @@ export default function AdminDashboard() {
 
       {/* Live Customer & BSC User Analytics */}
       <UserAnalyticsCharts />
+
+      {/* Admin Calendar Quick Access Card */}
+      <div className="card p-4 mb-4 bg-gradient-to-r from-primary/10 via-surface to-surface border border-primary/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary/15 text-primary flex items-center justify-center shrink-0">
+            <CalendarDays className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-text flex items-center gap-2">
+              Compliance Tracking Calendar
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-semibold border border-emerald-500/20">
+                Daily Verification
+              </span>
+            </h4>
+            <p className="text-xs text-text-muted mt-0.5">
+              Inspect process completion rates, exact timings, candidate profiles, and evidence files for any date.
+            </p>
+          </div>
+        </div>
+        <Link
+          to="/admin/calendar"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold shadow-xs hover:opacity-90 transition-opacity shrink-0"
+        >
+          Open Calendar &rarr;
+        </Link>
+      </div>
 
       {/* KPI grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 mb-4">
@@ -216,6 +260,137 @@ export default function AdminDashboard() {
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Live Connected Systems & Mobile Devices (Device & IP Security Telemetry) */}
+      <div className="card mt-4 overflow-hidden">
+        <div className="px-5 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface-alt/40">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-text">
+                  Connected Systems & Mobile Devices
+                </h3>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold border border-emerald-500/20 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Live IP Telemetry
+                </span>
+              </div>
+              <p className="text-xs text-text-muted mt-0.5">
+                Real-time tracking of employee mobile phone devices, desktop system IP addresses, and browsers.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 bg-surface px-3 py-1.5 rounded-lg border border-border text-xs font-semibold text-text-secondary">
+              <Smartphone className="w-3.5 h-3.5 text-purple-500" />
+              <span>
+                {data.recentActiveDevices?.filter((d) => d.device_type === 'Mobile').length || 0} Mobiles
+              </span>
+              <span className="text-border">|</span>
+              <Monitor className="w-3.5 h-3.5 text-sky-500" />
+              <span>
+                {data.recentActiveDevices?.filter((d) => d.device_type !== 'Mobile').length || 0} Systems
+              </span>
+            </div>
+            <Link to="/admin/users" className="text-xs text-primary hover:text-primary-dark font-semibold">
+              Manage users →
+            </Link>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>User / Employee</th>
+                <th>Device Category</th>
+                <th>Operating System & Browser</th>
+                <th>System / Mobile IP Address</th>
+                <th>Last Active Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(!data.recentActiveDevices || data.recentActiveDevices.length === 0) ? (
+                <tr>
+                  <td colSpan={5} className="px-5 py-8 text-center text-xs text-text-muted">
+                    No active device telemetry recorded yet.
+                  </td>
+                </tr>
+              ) : (
+                data.recentActiveDevices.map((d) => {
+                  const isMobile = d.device_type === 'Mobile'
+                  return (
+                    <tr key={d.user_id + (d.ip_address || '')}>
+                      <td>
+                        <div className="flex items-center gap-2.5">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
+                            isMobile ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' : 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300'
+                          }`}>
+                            {d.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-text text-xs">{d.full_name}</p>
+                            <p className="text-[11px] text-text-muted">{d.employee_code} · {d.role_name}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${
+                          isMobile
+                            ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
+                            : 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20'
+                        }`}>
+                          {isMobile ? <Smartphone className="w-3.5 h-3.5" /> : <Monitor className="w-3.5 h-3.5" />}
+                          {isMobile ? 'Mobile Phone' : 'Desktop / System'}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-1.5">
+                          <Globe className="w-3.5 h-3.5 text-text-muted shrink-0" />
+                          <span className="text-xs text-text font-medium" title={d.device_info}>
+                            {d.device_info || 'System Terminal'}
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs text-text font-bold bg-surface-alt px-2 py-0.5 rounded border border-border flex items-center gap-1.5">
+                            <Wifi className="w-3 h-3 text-emerald-500" />
+                            {d.ip_address || '127.0.0.1'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => copyIp(d.ip_address || '127.0.0.1')}
+                            className="p-1 rounded text-text-muted hover:text-text hover:bg-surface-alt transition-colors"
+                            title="Copy IP Address"
+                          >
+                            {copiedIp === (d.ip_address || '127.0.0.1') ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            ) : (
+                              <Copy className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                      <td className="whitespace-nowrap">
+                        <span className="text-xs text-text font-medium block">
+                          {timeAgo(d.last_login_at)}
+                        </span>
+                        <span className="text-[10px] text-text-muted">
+                          {fmtDateTime(d.last_login_at)}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 

@@ -23,33 +23,72 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('[ErrorBoundary]', error, errorInfo)
+    const msg = error?.message || ''
+    const isChunkError =
+      msg.includes('dynamically imported module') ||
+      msg.includes('Failed to fetch') ||
+      msg.includes('Loading chunk') ||
+      msg.includes('Importing a module script failed')
+
+    // Automatically reload once on chunk/module fetch failures
+    if (isChunkError && typeof window !== 'undefined') {
+      const key = 'eb_auto_reload_' + window.location.pathname
+      const last = sessionStorage.getItem(key)
+      const now = Date.now()
+      if (!last || now - parseInt(last, 10) > 10000) {
+        sessionStorage.setItem(key, String(now))
+        window.location.reload()
+      }
+    }
   }
 
   handleRetry = () => {
     this.setState({ hasError: false, error: null })
   }
 
+  handleReload = () => {
+    window.location.reload()
+  }
+
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) return this.props.fallback
 
+      const msg = this.state.error?.message || ''
+      const isChunkError =
+        msg.includes('dynamically imported module') ||
+        msg.includes('Failed to fetch') ||
+        msg.includes('Loading chunk')
+
       return (
-        <div className="min-h-[200px] flex items-center justify-center p-6">
-          <div className="text-center max-w-sm">
+        <div className="min-h-[260px] flex items-center justify-center p-6">
+          <div className="text-center max-w-md card p-6 shadow-xl border border-border">
             <div className="w-12 h-12 mx-auto rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-4">
               <AlertTriangle className="w-6 h-6 text-red-500" />
             </div>
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">Something went wrong</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-              {this.state.error?.message || 'An unexpected error occurred'}
+            <h3 className="text-base font-bold text-text mb-1">
+              {isChunkError ? 'Module Update Available' : 'Something went wrong'}
+            </h3>
+            <p className="text-xs text-text-muted mb-5 leading-relaxed">
+              {isChunkError
+                ? 'A new update or module synchronization was detected. Please reload to load the latest verified resources.'
+                : this.state.error?.message || 'An unexpected error occurred while rendering this page.'}
             </p>
-            <button
-              onClick={this.handleRetry}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-gray-900 dark:bg-white dark:text-gray-900 px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
-            >
-              <RefreshCw className="w-3 h-3" />
-              Try Again
-            </button>
+            <div className="flex items-center justify-center gap-2.5">
+              <button
+                onClick={this.handleReload}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-primary hover:bg-primary/90 px-4 py-2 rounded-xl transition-all shadow-xs"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Reload Application
+              </button>
+              <button
+                onClick={this.handleRetry}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-text bg-surface-alt hover:bg-border px-3.5 py-2 rounded-xl border border-border transition-colors"
+              >
+                Retry View
+              </button>
+            </div>
           </div>
         </div>
       )

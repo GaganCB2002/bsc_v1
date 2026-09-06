@@ -3,7 +3,8 @@ import { config } from './config.js'
 
 export const pool = new pg.Pool({
   connectionString: config.databaseUrl,
-  max: 10,
+  max: parseInt(process.env.DB_POOL_MAX || '0', 10) || 50,
+  min: parseInt(process.env.DB_POOL_MIN || '0', 10) || 5,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 15000,
   ssl: config.dbSsl ? { rejectUnauthorized: false } : undefined,

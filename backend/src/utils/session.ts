@@ -24,9 +24,15 @@ export async function createSession(
     .setJti(nonce)
     .sign(secret)
 
+  const { getClientIp, parseDevice } = await import('./deviceInfo.js')
+  const clientIp = getClientIp(req)
+  const userAgent = (req.headers['user-agent'] || null) as string | null
+  const dev = parseDevice(userAgent)
+
   await query(
-    `INSERT INTO sessions (user_id, token, expires_at, ip_address, user_agent) VALUES ($1,$2,$3,$4,$5)`,
-    [userId, token, expiresAt, req.ip || null, req.headers['user-agent'] || null]
+    `INSERT INTO sessions (user_id, token, expires_at, ip_address, user_agent, device_info, device_type)
+     VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+    [userId, token, expiresAt, clientIp, userAgent, dev.formatted, dev.deviceType]
   )
 
   res.cookie(config.cookieName, token, {

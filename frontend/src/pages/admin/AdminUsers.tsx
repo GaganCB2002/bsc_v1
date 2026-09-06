@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import {
   Search, Plus, Pencil, Trash2, KeyRound, UserCheck, UserX, Loader2,
-  Eye, EyeOff, ShieldAlert, ShieldCheck, Sparkles, CheckCircle2, AlertTriangle, X
+  Eye, EyeOff, ShieldAlert, ShieldCheck, Sparkles, CheckCircle2, AlertTriangle, X,
+  Smartphone, Monitor, Globe,
 } from 'lucide-react'
 import { get, post, put, del } from '../../lib/api'
 import { Spinner, PageHeader } from '../../components/States'
@@ -26,6 +27,9 @@ interface AdminUser {
   role_name: string
   department_name: string | null
   last_login_at: string | null
+  last_login_ip?: string | null
+  last_login_device?: string | null
+  last_login_device_type?: string | null
   created_at: string
 }
 
@@ -355,7 +359,7 @@ export default function AdminUsers() {
                   <th>Role</th>
                   <th>Department</th>
                   <th>Account Status</th>
-                  <th>Last Login</th>
+                  <th>Last Login & Device IP</th>
                   <th className="text-right">Actions</th>
                 </tr>
               </thead>
@@ -406,7 +410,34 @@ export default function AdminUsers() {
                             </span>
                           )}
                         </td>
-                        <td className="text-xs text-text-secondary">{fmtDateTime(u.last_login_at)}</td>
+                        <td>
+                          <div>
+                            <p className="text-xs text-text font-medium">{fmtDateTime(u.last_login_at)}</p>
+                            {u.last_login_ip ? (
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                                  u.last_login_device_type === 'Mobile'
+                                    ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20'
+                                    : 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20'
+                                }`}>
+                                  {u.last_login_device_type === 'Mobile' ? (
+                                    <Smartphone className="w-2.5 h-2.5" />
+                                  ) : (
+                                    <Monitor className="w-2.5 h-2.5" />
+                                  )}
+                                  <span className="font-mono">{u.last_login_ip}</span>
+                                </span>
+                                {u.last_login_device && (
+                                  <span className="text-[10px] text-text-muted truncate max-w-[130px]" title={u.last_login_device}>
+                                    {u.last_login_device}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-[10px] text-text-muted">No device recorded</span>
+                            )}
+                          </div>
+                        </td>
                         <td>
                           <div className="flex items-center justify-end gap-1">
                             <button className="btn btn-ghost btn-sm" title="Edit details" onClick={() => openEdit(u)}>

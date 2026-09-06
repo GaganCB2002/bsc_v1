@@ -2,14 +2,20 @@ import cluster from 'node:cluster'
 import os from 'node:os'
 import process from 'node:process'
 
+const isProduction = process.env.NODE_ENV === 'production'
 const NUM_WORKERS = parseInt(process.env.WEB_CONCURRENCY || '0', 10) || Math.max(1, os.cpus().length)
+const isClusterEnabled = isProduction && process.platform !== 'win32'
 
-export function isPrimary(): boolean {
-  return cluster.isPrimary
+export function shouldUseCluster(): boolean {
+  return isClusterEnabled && cluster.isPrimary
+}
+
+export function isWorker(): boolean {
+  return isClusterEnabled && cluster.isWorker
 }
 
 export function forkWorkers() {
-  if (!cluster.isPrimary) return
+  if (!cluster.isPrimary || !isClusterEnabled) return
 
   console.log(`[cluster] Primary ${process.pid} starting ${NUM_WORKERS} workers (CPUs: ${os.cpus().length})`)
 
@@ -62,5 +68,5 @@ export function forkWorkers() {
 }
 
 export function getWorkerCount(): number {
-  return NUM_WORKERS
+  return isClusterEnabled ? NUM_WORKERS : 1
 }

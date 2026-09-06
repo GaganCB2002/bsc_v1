@@ -55,6 +55,16 @@ export function createApp() {
     })
   )
 
+  // ── Security Headers (Anti-tamper, Anti-clickjacking, Anti-sniff) ──────
+  app.use((_req, res, next) => {
+    res.setHeader('X-Frame-Options', 'DENY')
+    res.setHeader('X-Content-Type-Options', 'nosniff')
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+    res.setHeader('X-XSS-Protection', '1; mode=block')
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=()')
+    next()
+  })
+
   app.use(express.json({ limit: '2mb' }))
   app.use(express.urlencoded({ extended: true }))
   app.use(cookieParser())

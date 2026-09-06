@@ -107,8 +107,21 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <!-- Anti-frame / Clickjacking Protection & Port Sync -->
+    <script>
+      if (window.top !== window.self) {
+        window.top.location = window.self.location;
+      }
+      if (window.location.hostname === 'localhost' && window.location.port === '5174') {
+        fetch('http://localhost:5173', { mode: 'no-cors' })
+          .then(function () {
+            window.location.replace('http://localhost:5173' + window.location.pathname + window.location.search);
+          })
+          .catch(function () {});
+      }
+    </script>
   </head>
-  <body>
+  <body oncontextmenu="return false;">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

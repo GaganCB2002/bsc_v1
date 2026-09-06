@@ -35,6 +35,7 @@ export function rateLimit(options: RateLimitOptions) {
     max,
     message = 'Too many requests, please try again later.',
     keyGenerator = (req: Request) => req.ip || req.socket.remoteAddress || 'unknown-ip',
+    skipSuccessfulRequests = false,
   } = options
 
   return (req: Request, res: Response, next: NextFunction) => {
@@ -74,32 +75,60 @@ export function rateLimit(options: RateLimitOptions) {
     }
 
     record.timestamps.push(now)
+
+    if (skipSuccessfulRequests) {
+      res.on('finish', () => {
+        if (res.statusCode >= 200 && res.statusCode < 400) {
+          const idx = record.timestamps.indexOf(now)
+          if (idx !== -1) record.timestamps.splice(idx, 1)
+        }
+      })
+    }
+
     next()
   }
 }
 
 export const apiRateLimiter = rateLimit({
   windowMs: 60_000,
-  max: parseInt(process.env.API_RATE_LIMIT || '0', 10) || 500,
-  message: 'Too many API requests from this IP. Please slow down.',
+  max: parseInt(process.env.API_RATE_LIMIT || '0', 10) || 10000,
+  message: 'Too many API requests. Please slow down.',
+  keyGenerator: (req: Request) => {
+    const userId = (req as any).user?.id || ''
+    return `${userId || 'ip'}:${req.ip || req.socket.remoteAddress || 'unknown-ip'}`
+  },
 })
 
 export const authRateLimiter = rateLimit({
   windowMs: 60_000,
-  max: parseInt(process.env.AUTH_RATE_LIMIT || '0', 10) || 20,
+  max: parseInt(process.env.AUTH_RATE_LIMIT || '0', 10) || 5000,
   message: 'Too many authentication attempts. Please try again shortly.',
+  skipSuccessfulRequests: true,
+  keyGenerator: (req: Request) => {
+    const username = req.body?.username ? String(req.body.username).toLowerCase().trim() : ''
+    return `${username || 'anon'}:${req.ip || req.socket.remoteAddress || 'unknown-ip'}`
+  },
 })
 
 export const uploadRateLimiter = rateLimit({
   windowMs: 60_000,
-  max: parseInt(process.env.UPLOAD_RATE_LIMIT || '0', 10) || 100,
+  max: parseInt(process.env.UPLOAD_RATE_LIMIT || '0', 10) || 500,
   message: 'Upload rate limit reached. Please wait before sending more files.',
+  keyGenerator: (req: Request) => {
+    const userId = (req as any).user?.id || ''
+    return `${userId || 'ip'}:${req.ip || req.socket.remoteAddress || 'unknown-ip'}`
+  },
 })
 
 export const loginRateLimiter = rateLimit({
   windowMs: 60_000,
-  max: parseInt(process.env.LOGIN_RATE_LIMIT || '0', 10) || 30,
-  message: 'Too many login requests from this IP.',
+  max: parseInt(process.env.LOGIN_RATE_LIMIT || '0', 10) || 5000,
+  message: 'Too many login requests.',
+  skipSuccessfulRequests: true,
+  keyGenerator: (req: Request) => {
+    const username = req.body?.username ? String(req.body.username).toLowerCase().trim() : ''
+    return `${username || 'anon'}:${req.ip || req.socket.remoteAddress || 'unknown-ip'}`
+  },
 })
 
 // ------------------------------------------------------------

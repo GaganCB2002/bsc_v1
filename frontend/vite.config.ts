@@ -19,6 +19,11 @@ export default defineConfig({
   plugins: [react(), tailwindcss(), removeCrossoriginFromCss()],
   server: {
     port: 5173,
+    host: true,
+    cors: true,
+    fs: {
+      strict: false,
+    },
     proxy: {
       '/api': { target: 'http://localhost:4000', changeOrigin: true },
       '/uploads': { target: 'http://localhost:4000', changeOrigin: true },

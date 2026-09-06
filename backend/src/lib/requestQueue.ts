@@ -73,7 +73,7 @@ export class RequestQueue {
 }
 
 export const apiQueue = new RequestQueue({
-  maxConcurrent: parseInt(process.env.MAX_CONCURRENT || '0', 10) || 200,
-  maxQueue: parseInt(process.env.MAX_QUEUE || '0', 10) || 500,
+  maxConcurrent: parseInt(process.env.MAX_CONCURRENT || '0', 10) || 1000,
+  maxQueue: parseInt(process.env.MAX_QUEUE || '0', 10) || 5000,
   timeoutMs: 30_000,
 })

@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { config } from '../config.js'
 import { query } from '../db.js'
 import { requireAuth, requirePermission } from '../middleware/auth.js'
-import { ah, fail, isValidDate, ok } from '../utils/http.js'
+import { ah, fail, isValidDate, istToday, ok } from '../utils/http.js'
 import { logAudit } from '../utils/audit.js'
 import { notifyUser } from '../utils/notify.js'
 import { reviewSubmission } from '../utils/review.js'
@@ -24,7 +24,7 @@ router.get(
   '/dashboard',
   ah(async (_req, res) => {
     const [users, departments, modules, checkpoints, submissions, pendingReview, approvedToday,
-      evidence, trackers, rolesCount, trend, statusDist, deptPerf, recent, latestTracks, audit] = await Promise.all([
+      evidence, trackers, rolesCount, trend, statusDist, deptPerf, recent, latestTracks, audit, activeDevices] = await Promise.all([
       query<{ c: number }>(`SELECT COUNT(*)::int AS c FROM users WHERE status = 'ACTIVE'`),
       query<{ c: number }>(`SELECT COUNT(*)::int AS c FROM departments WHERE status = 'ACTIVE'`),
       query<{ c: number }>(`SELECT COUNT(*)::int AS c FROM modules WHERE status = 'ACTIVE'`),
@@ -93,6 +93,29 @@ router.get(
          FROM audit_logs al LEFT JOIN users u ON u.id = al.user_id
          ORDER BY al.created_at DESC LIMIT 8`
       ),
+      query<{
+        user_id: string
+        full_name: string
+        employee_code: string
+        role_name: string
+        ip_address: string
+        device_info: string
+        device_type: string
+        last_login_at: string
+      }>(
+        `SELECT DISTINCT ON (u.id)
+                u.id AS user_id, u.full_name, u.employee_code, r.name AS role_name,
+                COALESCE(u.last_login_ip, s.ip_address, '127.0.0.1') AS ip_address,
+                COALESCE(u.last_login_device, s.device_info, 'System / PC (Web Browser)') AS device_info,
+                COALESCE(u.last_login_device_type, s.device_type, 'Desktop') AS device_type,
+                COALESCE(u.last_login_at, s.created_at) AS last_login_at
+         FROM users u
+         JOIN roles r ON r.id = u.role_id
+         LEFT JOIN sessions s ON s.user_id = u.id
+         WHERE u.last_login_at IS NOT NULL OR s.id IS NOT NULL
+         ORDER BY u.id, COALESCE(u.last_login_at, s.created_at) DESC NULLS LAST
+         LIMIT 12`
+      ),
     ])
 
     ok(res, {
@@ -114,6 +137,7 @@ router.get(
       recentSubmissions: recent.rows,
       latestTracks: latestTracks.rows,
       recentAudit: audit.rows,
+      recentActiveDevices: activeDevices.rows,
     })
   })
 )
@@ -144,7 +168,8 @@ router.get(
     const { rows } = await query(
       `SELECT u.id, u.employee_code, u.full_name, u.email, u.phone, u.username, u.status,
               u.account_type, u.customer_code, u.banned_until, u.restriction_reason, u.restricted_at,
-              u.profile_image, u.last_login_at, u.created_at, u.department_id,
+              u.profile_image, u.last_login_at, u.last_login_ip, u.last_login_device, u.last_login_device_type,
+              u.created_at, u.department_id,
               r.name AS role_name, d.name AS department_name
        FROM users u
        JOIN roles r ON r.id = u.role_id
@@ -227,6 +252,7 @@ router.get(
     const { rows } = await query(
       `SELECT u.id, u.employee_code, u.full_name, u.email, u.phone, u.username, u.status,
               u.profile_image, u.role_id, u.department_id, u.reporting_manager_id,
+              u.last_login_at, u.last_login_ip, u.last_login_device, u.last_login_device_type,
               r.name AS role_name, d.name AS department_name, rm.full_name AS manager_name
        FROM users u
        JOIN roles r ON r.id = u.role_id
@@ -1319,7 +1345,7 @@ router.get(
     const [list, total] = await Promise.all([
       query(
         `SELECT al.id, al.action, al.entity_type, al.entity_id, al.old_values, al.new_values,
-                al.ip_address, al.created_at, u.full_name AS user_name
+                al.ip_address, al.device_info, al.device_type, al.user_agent, al.created_at, u.full_name AS user_name
          FROM audit_logs al LEFT JOIN users u ON u.id = al.user_id
          WHERE ${where} ORDER BY al.created_at DESC
          LIMIT $${i} OFFSET $${i + 1}`,
@@ -1514,6 +1540,177 @@ router.get(
       [req.user!.id]
     )
     ok(res, { code: rows[0] || null })
+  })
+)
+
+// ============================================================
+// ADMIN CALENDAR — Complete company-wide tracking across all candidates
+// ============================================================
+router.get(
+  '/calendar',
+  ah(async (req, res) => {
+    const now = new Date(Date.now() + 5.5 * 3600 * 1000)
+    const year = parseInt((req.query.year as string) || String(now.getUTCFullYear()), 10)
+    const month = parseInt((req.query.month as string) || String(now.getUTCMonth() + 1), 10)
+    const departmentId = (req.query.department_id as string) || ''
+    const statusFilter = (req.query.status as string) || ''
+    const userIdFilter = (req.query.user_id as string) || ''
+
+    const first = `${year}-${String(month).padStart(2, '0')}-01`
+    const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate()
+    const last = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
+
+    const conditions: string[] = ['s.submission_date BETWEEN $1 AND $2']
+    const params: unknown[] = [first, last]
+
+    if (departmentId) {
+      params.push(departmentId)
+      conditions.push(`u.department_id = $${params.length}`)
+    }
+    if (statusFilter) {
+      params.push(statusFilter)
+      conditions.push(`s.status = $${params.length}`)
+    }
+    if (userIdFilter) {
+      params.push(userIdFilter)
+      conditions.push(`s.user_id = $${params.length}`)
+    }
+
+    const where = conditions.join(' AND ')
+
+    const { rows: days } = await query<{
+      date: string
+      total: number
+      completed: number
+      approved: number
+      submitted: number
+      rejected: number
+      draft: number
+      pending: number
+      unique_candidates: number
+    }>(
+      `SELECT s.submission_date::text AS date,
+              COUNT(s.id)::int AS total,
+              COUNT(*) FILTER (WHERE s.status IN ('APPROVED','SUBMITTED','REJECTED'))::int AS completed,
+              COUNT(*) FILTER (WHERE s.status = 'APPROVED')::int AS approved,
+              COUNT(*) FILTER (WHERE s.status = 'SUBMITTED')::int AS submitted,
+              COUNT(*) FILTER (WHERE s.status = 'REJECTED')::int AS rejected,
+              COUNT(*) FILTER (WHERE s.status = 'DRAFT')::int AS draft,
+              COUNT(*) FILTER (WHERE s.status = 'PENDING')::int AS pending,
+              COUNT(DISTINCT s.user_id)::int AS unique_candidates
+       FROM checkpoint_submissions s
+       JOIN users u ON u.id = s.user_id
+       WHERE ${where}
+       GROUP BY s.submission_date
+       ORDER BY s.submission_date`,
+      params
+    )
+
+    const { rows: items } = await query<{
+      id: string
+      date: string
+      checkpoint_id: string
+      checkpoint_title: string
+      checkpoint_code: string | null
+      module_name: string
+      module_slug: string
+      status: string
+      submitted_at: string | null
+      approved_at: string | null
+      rejected_at: string | null
+      auto_approved: boolean | null
+      review_comment: string | null
+      reviewer_name: string | null
+      compliance_status: string | null
+      accuracy_status: string | null
+      comments: string | null
+      corrective_action: string | null
+      candidate_id: string
+      candidate_name: string
+      candidate_email: string
+      candidate_employee_code: string | null
+      candidate_role: string | null
+      department_name: string | null
+      evidence_count: number
+      evidence_files: Array<{
+        id: string
+        original_name: string
+        mime_type: string
+        file_size: number
+        storage_path: string
+      }>
+    }>(
+      `SELECT s.id,
+              s.submission_date::text AS date,
+              s.checkpoint_id,
+              c.title AS checkpoint_title,
+              c.code AS checkpoint_code,
+              m.name AS module_name,
+              m.slug AS module_slug,
+              s.status,
+              s.submitted_at,
+              s.approved_at,
+              s.rejected_at,
+              s.auto_approved,
+              s.review_comment,
+              rev.full_name AS reviewer_name,
+              a.compliance_status,
+              a.accuracy_status,
+              a.comments,
+              a.corrective_action,
+              u.id AS candidate_id,
+              u.full_name AS candidate_name,
+              u.email AS candidate_email,
+              u.employee_code AS candidate_employee_code,
+              r.name AS candidate_role,
+              d.name AS department_name,
+              COALESCE(
+                (SELECT COUNT(*)::int FROM evidence_files e WHERE e.submission_id = s.id),
+                0
+              ) AS evidence_count,
+              COALESCE(
+                (
+                  SELECT json_agg(
+                    json_build_object(
+                      'id', ef.id,
+                      'original_name', ef.original_name,
+                      'mime_type', ef.mime_type,
+                      'file_size', ef.file_size,
+                      'storage_path', ef.storage_path
+                    )
+                  )
+                  FROM evidence_files ef
+                  WHERE ef.submission_id = s.id
+                ),
+                '[]'::json
+              ) AS evidence_files
+       FROM checkpoint_submissions s
+       JOIN users u ON u.id = s.user_id
+       JOIN checkpoints c ON c.id = s.checkpoint_id
+       JOIN modules m ON m.id = c.module_id
+       LEFT JOIN roles r ON r.id = u.role_id
+       LEFT JOIN departments d ON d.id = u.department_id
+       LEFT JOIN users rev ON rev.id = s.reviewed_by
+       LEFT JOIN submission_answers a ON a.submission_id = s.id
+       WHERE ${where}
+       ORDER BY s.submission_date DESC, s.submitted_at DESC NULLS LAST, c.display_order`,
+      params
+    )
+
+    const byDate = new Map<string, typeof items>()
+    for (const item of items) {
+      if (!byDate.has(item.date)) byDate.set(item.date, [])
+      byDate.get(item.date)!.push(item)
+    }
+
+    ok(res, {
+      year,
+      month,
+      days,
+      itemsByDate: Object.fromEntries(byDate),
+      totalSubmissions: items.length,
+      today: istToday(),
+    })
   })
 )
 

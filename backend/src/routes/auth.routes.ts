@@ -19,6 +19,13 @@ const router = Router()
 const loginSchema = z.object({
   username: z.string().min(1).max(100),
   password: z.string().min(1).max(200),
+  clientHint: z
+    .object({
+      platform: z.string().optional(),
+      isMobile: z.boolean().optional(),
+      screen: z.string().optional(),
+    })
+    .optional(),
 })
 
 // POST /api/auth/login
@@ -30,7 +37,8 @@ router.post(
     if (!parsed.success) return fail(res, 400, 'Username and password are required')
 
     const { username, password } = parsed.data
-    const clientIp = req.ip || req.socket.remoteAddress || 'unknown-ip'
+    const { getClientIp, parseDevice } = await import('../utils/deviceInfo.js')
+    const clientIp = getClientIp(req)
 
     // 1. Check if account or IP is locked out
     const lockout = checkLoginLockout(username, clientIp)
@@ -127,9 +135,27 @@ router.post(
     // Reset failed attempts on successful login
     resetFailedAttempts(username, clientIp)
 
+    const userAgent = (req.headers['user-agent'] || null) as string | null
+    const dev = parseDevice(userAgent, parsed.data.clientHint)
+
     await createSession(user.id, req, res)
-    await query('UPDATE users SET last_login_at = NOW() WHERE id = $1', [user.id])
-    await logAudit({ userId: user.id, action: 'LOGIN', entityType: 'user', entityId: user.id, req })
+    await query(
+      `UPDATE users
+       SET last_login_at = NOW(),
+           last_login_ip = $2,
+           last_login_device = $3,
+           last_login_device_type = $4
+       WHERE id = $1`,
+      [user.id, clientIp, dev.formatted, dev.deviceType]
+    )
+    await logAudit({
+      userId: user.id,
+      action: 'LOGIN',
+      entityType: 'user',
+      entityId: user.id,
+      newValues: { ip: clientIp, device: dev.formatted, deviceType: dev.deviceType },
+      req,
+    })
 
     return ok(res, {
       redirectUrl:

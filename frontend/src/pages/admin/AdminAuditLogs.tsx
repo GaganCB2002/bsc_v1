@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ScrollText, Search } from 'lucide-react'
+import { ScrollText, Search, Smartphone, Monitor } from 'lucide-react'
 import { get } from '../../lib/api'
 import { Spinner, ErrorState, PageHeader } from '../../components/States'
 import Modal from '../../components/Modal'
@@ -14,6 +14,9 @@ interface AuditRow {
   old_values: unknown
   new_values: unknown
   ip_address: string | null
+  device_info?: string | null
+  device_type?: string | null
+  user_agent?: string | null
   created_at: string
   user_name: string | null
 }
@@ -71,7 +74,7 @@ export default function AdminAuditLogs() {
       <div className="card overflow-x-auto">
         <table className="table">
           <thead>
-            <tr><th>Time</th><th>User</th><th>Action</th><th>Entity</th><th>IP</th><th className="text-right">Details</th></tr>
+            <tr><th>Time</th><th>User</th><th>Action</th><th>Entity</th><th>Source IP & Device</th><th className="text-right">Details</th></tr>
           </thead>
           <tbody>
             {(data?.items || []).map((a) => (
@@ -84,7 +87,23 @@ export default function AdminAuditLogs() {
                   </span>
                 </td>
                 <td className="text-xs text-text-secondary">{a.entity_type}{a.entity_id ? ` · ${a.entity_id.slice(0, 8)}` : ''}</td>
-                <td className="font-mono text-[11px] text-text-muted">{a.ip_address || '—'}</td>
+                <td>
+                  <div className="flex flex-col">
+                    <span className="font-mono text-xs text-text font-medium flex items-center gap-1.5">
+                      {a.device_type === 'Mobile' ? (
+                        <Smartphone className="w-3 h-3 text-purple-500 shrink-0" />
+                      ) : (
+                        <Monitor className="w-3 h-3 text-sky-500 shrink-0" />
+                      )}
+                      {a.ip_address || '—'}
+                    </span>
+                    {a.device_info && (
+                      <span className="text-[10px] text-text-muted truncate max-w-[170px]" title={a.device_info}>
+                        {a.device_info}
+                      </span>
+                    )}
+                  </div>
+                </td>
                 <td className="text-right">
                   {Boolean(a.old_values || a.new_values) && (
                     <button className="btn btn-outline btn-sm" onClick={() => setDetail(a)}>View</button>
@@ -111,14 +130,30 @@ export default function AdminAuditLogs() {
       <Modal open={!!detail} onClose={() => setDetail(null)} title={`Audit detail — ${detail?.action || ''}`} wide>
         {detail && (
           <div className="space-y-3 text-xs">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="rounded-xl bg-surface-alt border border-border p-3">
                 <p className="text-[10px] font-bold text-text-muted uppercase">Time</p>
                 <p className="text-text mt-1 font-semibold">{fmtDateTime(detail.created_at)}</p>
               </div>
               <div className="rounded-xl bg-surface-alt border border-border p-3">
                 <p className="text-[10px] font-bold text-text-muted uppercase">Actor</p>
-                <p className="text-text mt-1 font-semibold">{detail.user_name || 'System'} · {detail.ip_address || 'no IP'}</p>
+                <p className="text-text mt-1 font-semibold">{detail.user_name || 'System'}</p>
+              </div>
+              <div className="rounded-xl bg-surface-alt border border-border p-3">
+                <p className="text-[10px] font-bold text-text-muted uppercase">Device & Network IP</p>
+                <p className="text-text mt-1 font-semibold flex items-center gap-1.5">
+                  {detail.device_type === 'Mobile' ? (
+                    <Smartphone className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                  ) : (
+                    <Monitor className="w-3.5 h-3.5 text-sky-500 shrink-0" />
+                  )}
+                  <span className="font-mono text-[11px]">{detail.ip_address || 'No IP'}</span>
+                </p>
+                {detail.device_info && (
+                  <p className="text-[10px] text-text-muted truncate mt-0.5" title={detail.device_info}>
+                    {detail.device_info}
+                  </p>
+                )}
               </div>
             </div>
             {(detail.old_values !== null && detail.old_values !== undefined) && (

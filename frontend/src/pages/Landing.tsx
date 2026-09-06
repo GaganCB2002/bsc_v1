@@ -13,7 +13,6 @@ import {
   Lock,
   Database,
   UserPlus,
-  Zap,
   ScrollText,
   BarChart3,
   X,
@@ -22,6 +21,7 @@ import { get } from '../lib/api'
 import { useTheme } from '../lib/theme'
 import ThemeToggle from '../components/ThemeToggle'
 import Chatbot from '../components/Chatbot'
+import { ScrollToTopButton } from '../components/ScrollToTopButton'
 
 interface Stats {
   modules: number
@@ -80,7 +80,6 @@ export default function Landing() {
             <a href="#features" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Features</a>
             <a href="#how" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">How it works</a>
             <a href="#tracking" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">GPS Tracking</a>
-            <a href="#security" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Security</a>
           </nav>
 
           <div className="flex items-center gap-3">
@@ -234,40 +233,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── Security ────────────────────────────────────────── */}
-      <section id="security" className="border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-[#0f1729]">
-        <div className="max-w-5xl mx-auto px-5 py-20">
-          <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 tracking-widest uppercase mb-2">Security</p>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Enterprise-grade protections</h2>
-          <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {[
-              { icon: Lock, title: '5-Attempt Lockout', desc: 'Account locks for 5 minutes after 5 failed passwords.' },
-              { icon: ShieldCheck, title: 'Rate Limiting', desc: 'API throttling with HTTP 429 protection.' },
-              { icon: Database, title: 'Secure Cookies', desc: 'HTTP-only SameSite session cookies.' },
-              { icon: ScrollText, title: 'Audit Trail', desc: 'Every action signed with IP and timestamps.' },
-            ].map((s) => (
-              <div key={s.title} className="p-5 rounded-xl border border-gray-200 dark:border-gray-800 text-center">
-                <div className="w-10 h-10 mx-auto rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-3">
-                  <s.icon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                </div>
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{s.title}</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 leading-relaxed">{s.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Tech Stack ──────────────────────────────────────── */}
-      <section className="border-b border-gray-100 dark:border-gray-800">
-        <div className="max-w-5xl mx-auto px-5 py-6 flex items-center justify-center gap-6 flex-wrap text-[11px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">
-          <span className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5" /> React 19 + Vite</span>
-          <span className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5" /> PostgreSQL</span>
-          <span className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5" /> Express API</span>
-          <span className="flex items-center gap-1.5"><Satellite className="w-3.5 h-3.5" /> GPS · Leaflet</span>
-        </div>
-      </section>
-
       {/* ── Footer ──────────────────────────────────────────── */}
       <footer className="bg-gray-900 dark:bg-black text-gray-400">
         <div className="max-w-5xl mx-auto px-5 py-10">
@@ -323,8 +288,9 @@ export default function Landing() {
         </div>
       </footer>
 
-      {/* ── AI Chatbot ──────────────────────────────────────── */}
+      {/* ── AI Chatbot & Floating Scroll-To-Top ──────────────── */}
       <Chatbot />
+      <ScrollToTopButton />
 
       {/* ── Policy Modal ────────────────────────────────────── */}
       {policyModal && (

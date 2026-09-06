@@ -6,39 +6,82 @@ import AppShell from './components/AppShell'
 import { Spinner } from './components/States'
 import ErrorBoundary from './components/ErrorBoundary'
 
-const Landing = lazy(() => import('./pages/Landing'))
-const Login = lazy(() => import('./pages/Login'))
-const Dashboard = lazy(() => import('./pages/Dashboard'))
-const Modules = lazy(() => import('./pages/Modules'))
-const ModuleDetail = lazy(() => import('./pages/ModuleDetail'))
-const CheckpointDetail = lazy(() => import('./pages/CheckpointDetail'))
-const History = lazy(() => import('./pages/History'))
-const Reports = lazy(() => import('./pages/Reports'))
-const CalendarPage = lazy(() => import('./pages/CalendarPage'))
-const Profile = lazy(() => import('./pages/Profile'))
-const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
-const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'))
-const AdminRoles = lazy(() => import('./pages/admin/AdminRoles'))
-const AdminDepartments = lazy(() => import('./pages/admin/AdminDepartments'))
-const AdminModules = lazy(() => import('./pages/admin/AdminModules'))
-const AdminCheckpoints = lazy(() => import('./pages/admin/AdminCheckpoints'))
-const AdminAssignments = lazy(() => import('./pages/admin/AdminAssignments'))
-const AdminSubmissions = lazy(() => import('./pages/admin/AdminSubmissions'))
-const AdminEvidence = lazy(() => import('./pages/admin/AdminEvidence'))
-const AdminTracking = lazy(() => import('./pages/admin/AdminTracking'))
-const AdminReports = lazy(() => import('./pages/admin/AdminReports'))
-const AdminAuditLogs = lazy(() => import('./pages/admin/AdminAuditLogs'))
-const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'))
-const SupervisorDashboard = lazy(() => import('./pages/supervisor/SupervisorDashboard'))
-const SupervisorApprovals = lazy(() => import('./pages/supervisor/SupervisorApprovals'))
-const SupervisorDepartments = lazy(() => import('./pages/supervisor/SupervisorDepartments'))
-const SupervisorEmployees = lazy(() => import('./pages/supervisor/SupervisorEmployees'))
-const SupervisorProjects = lazy(() => import('./pages/supervisor/SupervisorProjects'))
-const SupervisorActivity = lazy(() => import('./pages/supervisor/SupervisorActivity'))
-const SupervisorProfile = lazy(() => import('./pages/supervisor/SupervisorProfile'))
-const SupervisorReports = lazy(() => import('./pages/supervisor/SupervisorReports'))
-const Chat = lazy(() => import('./pages/Chat'))
-const WhatsAppSection = lazy(() => import('./pages/WhatsAppSection'))
+function lazyWithRetry<T extends React.ComponentType<any>>(
+  factory: () => Promise<{ default: T }>,
+  retries = 3,
+  interval = 400
+): React.LazyExoticComponent<T> {
+  return lazy(() =>
+    new Promise<{ default: T }>((resolve, reject) => {
+      const attempt = (remaining: number) => {
+        factory()
+          .then(resolve)
+          .catch((error: any) => {
+            const msg = String(error?.message || error || '')
+            const isDynamicImportError =
+              msg.includes('dynamically imported module') ||
+              msg.includes('Failed to fetch') ||
+              msg.includes('Loading chunk') ||
+              msg.includes('Importing a module script failed')
+
+            if (remaining > 0) {
+              setTimeout(() => attempt(remaining - 1), interval)
+              return
+            }
+
+            if (isDynamicImportError && typeof window !== 'undefined') {
+              const storageKey = 'retry_chunk_reload_' + window.location.pathname
+              const lastReload = sessionStorage.getItem(storageKey)
+              const now = Date.now()
+              if (!lastReload || now - parseInt(lastReload, 10) > 8000) {
+                sessionStorage.setItem(storageKey, String(now))
+                window.location.reload()
+                return
+              }
+            }
+
+            reject(error)
+          })
+      }
+      attempt(retries)
+    })
+  )
+}
+
+const Landing = lazyWithRetry(() => import('./pages/Landing'))
+const Login = lazyWithRetry(() => import('./pages/Login'))
+const Dashboard = lazyWithRetry(() => import('./pages/Dashboard'))
+const Modules = lazyWithRetry(() => import('./pages/Modules'))
+const ModuleDetail = lazyWithRetry(() => import('./pages/ModuleDetail'))
+const CheckpointDetail = lazyWithRetry(() => import('./pages/CheckpointDetail'))
+const History = lazyWithRetry(() => import('./pages/History'))
+const Reports = lazyWithRetry(() => import('./pages/Reports'))
+const CalendarPage = lazyWithRetry(() => import('./pages/CalendarPage'))
+const Profile = lazyWithRetry(() => import('./pages/Profile'))
+const AdminDashboard = lazyWithRetry(() => import('./pages/admin/AdminDashboard'))
+const AdminUsers = lazyWithRetry(() => import('./pages/admin/AdminUsers'))
+const AdminRoles = lazyWithRetry(() => import('./pages/admin/AdminRoles'))
+const AdminDepartments = lazyWithRetry(() => import('./pages/admin/AdminDepartments'))
+const AdminModules = lazyWithRetry(() => import('./pages/admin/AdminModules'))
+const AdminCheckpoints = lazyWithRetry(() => import('./pages/admin/AdminCheckpoints'))
+const AdminAssignments = lazyWithRetry(() => import('./pages/admin/AdminAssignments'))
+const AdminSubmissions = lazyWithRetry(() => import('./pages/admin/AdminSubmissions'))
+const AdminCalendar = lazyWithRetry(() => import('./pages/admin/AdminCalendar'))
+const AdminEvidence = lazyWithRetry(() => import('./pages/admin/AdminEvidence'))
+const AdminTracking = lazyWithRetry(() => import('./pages/admin/AdminTracking'))
+const AdminReports = lazyWithRetry(() => import('./pages/admin/AdminReports'))
+const AdminAuditLogs = lazyWithRetry(() => import('./pages/admin/AdminAuditLogs'))
+const AdminSettings = lazyWithRetry(() => import('./pages/admin/AdminSettings'))
+const SupervisorDashboard = lazyWithRetry(() => import('./pages/supervisor/SupervisorDashboard'))
+const SupervisorApprovals = lazyWithRetry(() => import('./pages/supervisor/SupervisorApprovals'))
+const SupervisorDepartments = lazyWithRetry(() => import('./pages/supervisor/SupervisorDepartments'))
+const SupervisorEmployees = lazyWithRetry(() => import('./pages/supervisor/SupervisorEmployees'))
+const SupervisorProjects = lazyWithRetry(() => import('./pages/supervisor/SupervisorProjects'))
+const SupervisorActivity = lazyWithRetry(() => import('./pages/supervisor/SupervisorActivity'))
+const SupervisorProfile = lazyWithRetry(() => import('./pages/supervisor/SupervisorProfile'))
+const SupervisorReports = lazyWithRetry(() => import('./pages/supervisor/SupervisorReports'))
+const Chat = lazyWithRetry(() => import('./pages/Chat'))
+const WhatsAppSection = lazyWithRetry(() => import('./pages/WhatsAppSection'))
 
 function PageLoader() {
   return (
@@ -137,6 +180,7 @@ export default function App() {
             <Route path="checkpoints" element={<AdminCheckpoints />} />
             <Route path="assignments" element={<AdminAssignments />} />
             <Route path="submissions" element={<AdminSubmissions />} />
+            <Route path="calendar" element={<AdminCalendar />} />
             <Route path="evidence" element={<AdminEvidence />} />
             <Route path="reports" element={<AdminReports />} />
             <Route path="audit-logs" element={<AdminAuditLogs />} />

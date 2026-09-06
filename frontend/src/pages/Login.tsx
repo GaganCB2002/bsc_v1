@@ -39,7 +39,19 @@ export default function Login() {
     }
     setBusy(true)
     try {
-      const data = await post<{ redirectUrl: string }>('/api/auth/login', { username: username.trim(), password })
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768
+      const platform = (navigator as any).userAgentData?.platform || navigator.platform || (isMobile ? 'Mobile Device' : 'Desktop System')
+      const screen = `${window.screen.width}x${window.screen.height}`
+
+      const data = await post<{ redirectUrl: string }>('/api/auth/login', {
+        username: username.trim(),
+        password,
+        clientHint: {
+          platform,
+          isMobile,
+          screen,
+        },
+      })
       await refresh()
       const from = (location.state as { from?: string } | null)?.from
       navigate(from || data.redirectUrl || '/dashboard', { replace: true })
