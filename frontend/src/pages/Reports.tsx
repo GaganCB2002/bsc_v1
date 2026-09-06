@@ -16,6 +16,7 @@ import { get, apiUrl } from '../lib/api'
 import { Spinner, ErrorState, PageHeader } from '../components/States'
 import StatCard from '../components/StatCard'
 import { complianceLabel, accuracyLabel } from '../lib/format'
+import { useChartTheme } from '../lib/chartTheme'
 
 interface ReportsData {
   totals: { total: number; approved: number; rejected: number; submitted: number; draft: number; pending: number; approvalRate: number }
@@ -40,6 +41,7 @@ export default function Reports() {
   const [data, setData] = useState<ReportsData | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const chart = useChartTheme()
 
   const load = () => {
     setLoading(true)
@@ -85,10 +87,10 @@ export default function Reports() {
           <h3 className="text-sm font-bold text-text mb-3">30-day trend</h3>
           <ResponsiveContainer width="100%" height={230}>
             <LineChart data={trend} margin={{ top: 5, right: 10, left: -25, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} interval={4} />
-              <YAxis tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} allowDecimals={false} />
-              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chart.gridColor} vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: chart.textColor }} axisLine={false} tickLine={false} interval={4} />
+              <YAxis tick={{ fontSize: 10, fill: chart.textColor }} axisLine={false} tickLine={false} allowDecimals={false} />
+              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${chart.tooltipBorder}`, background: chart.tooltipBg, color: chart.tooltipText }} />
               <Line type="monotone" dataKey="total" name="Submissions" stroke="#0ea5e9" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="approved" name="Approved" stroke="#16a34a" strokeWidth={2} dot={false} />
             </LineChart>
@@ -107,8 +109,8 @@ export default function Reports() {
                     <Cell key={p.name} fill={COMPLIANCE_COLORS[p.raw] || '#0ea5e9'} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
+                <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${chart.tooltipBorder}`, background: chart.tooltipBg, color: chart.tooltipText }} />
+                <Legend wrapperStyle={{ fontSize: 11, color: chart.textColor }} />
               </PieChart>
             </ResponsiveContainer>
           )}
@@ -125,8 +127,8 @@ export default function Reports() {
                   <Cell key={s.name} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }} />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
+              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${chart.tooltipBorder}`, background: chart.tooltipBg, color: chart.tooltipText }} />
+              <Legend wrapperStyle={{ fontSize: 11, color: chart.textColor }} />
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -138,10 +140,10 @@ export default function Reports() {
           ) : (
             <ResponsiveContainer width="100%" height={230}>
               <BarChart data={data.byModule} layout="vertical" margin={{ top: 5, right: 15, left: 30, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} allowDecimals={false} />
-                <YAxis type="category" dataKey="module_name" tick={{ fontSize: 10, fill: '#475569' }} axisLine={false} tickLine={false} width={90} />
-                <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={chart.gridColor} horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 10, fill: chart.textColor }} axisLine={false} tickLine={false} allowDecimals={false} />
+                <YAxis type="category" dataKey="module_name" tick={{ fontSize: 10, fill: chart.textColor }} axisLine={false} tickLine={false} width={90} />
+                <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${chart.tooltipBorder}`, background: chart.tooltipBg, color: chart.tooltipText }} />
                 <Bar dataKey="approved" name="Approved" stackId="a" fill="#16a34a" radius={[0, 0, 0, 0]} />
                 <Bar dataKey="pending" name="Pending" stackId="a" fill="#0ea5e9" />
                 <Bar dataKey="rejected" name="Rejected" stackId="a" fill="#dc2626" radius={[0, 4, 4, 0]} />

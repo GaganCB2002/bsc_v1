@@ -41,7 +41,7 @@ router.post(
       return fail(
         res,
         429,
-        `Too many failed login attempts. Account temporarily locked for 5 minutes. Try again in ${timeStr}.`,
+        `Too many failed login attempts (5/5). Account temporarily locked for 15 minutes. Try again in ${timeStr} or contact your system administrator.`,
         'ACCOUNT_LOCKED'
       )
     }
@@ -51,10 +51,12 @@ router.post(
       password_hash: string
       status: string
       role_name: string
+      banned_until: string | null
+      restriction_reason: string | null
     }>(
-      `SELECT u.id, u.password_hash, u.status, r.name AS role_name
+      `SELECT u.id, u.password_hash, u.status, u.banned_until, u.restriction_reason, r.name AS role_name
        FROM users u JOIN roles r ON r.id = u.role_id
-       WHERE u.username = $1 OR u.email = $1`,
+       WHERE LOWER(u.username) = LOWER($1) OR LOWER(u.email) = LOWER($1)`,
       [username]
     )
     const user = rows[0]
@@ -65,16 +67,38 @@ router.post(
         return fail(
           res,
           429,
-          'Too many failed login attempts (5/5). Account temporarily locked for 5 minutes.',
+          'Too many failed login attempts (5/5). Account temporarily locked for 15 minutes. Please contact your administrator if you need immediate assistance.',
           'ACCOUNT_LOCKED'
         )
       }
       return fail(
         res,
         401,
-        `Invalid username or password. ${attempt.remainingAttempts} attempt(s) remaining before a 5-minute lockout.`,
+        `Invalid username or password. ${attempt.remainingAttempts} attempt(s) remaining before a 15-minute lockout.`,
         'INVALID_CREDENTIALS'
       )
+    }
+
+    // Auto-reopen if time-based restriction expired
+    if (user.banned_until) {
+      const banEnd = new Date(user.banned_until).getTime()
+      if (banEnd <= Date.now()) {
+        await query(
+          `UPDATE users SET status = 'ACTIVE', banned_until = NULL, restriction_reason = NULL, updated_at = NOW() WHERE id = $1`,
+          [user.id]
+        )
+        user.status = 'ACTIVE'
+        user.banned_until = null
+      } else {
+        const dateStr = new Date(user.banned_until).toLocaleString()
+        const reasonStr = user.restriction_reason ? ` Reason: ${user.restriction_reason}.` : ''
+        return fail(
+          res,
+          403,
+          `Your account has been restricted until ${dateStr}.${reasonStr} Contact your administrator for assistance.`,
+          'ACCOUNT_RESTRICTED'
+        )
+      }
     }
 
     if (user.status !== 'ACTIVE') {
@@ -88,14 +112,14 @@ router.post(
         return fail(
           res,
           429,
-          'Too many failed login attempts (5/5). Account temporarily locked for 5 minutes.',
+          'Too many failed login attempts (5/5). Account temporarily locked for 15 minutes. Please contact your administrator.',
           'ACCOUNT_LOCKED'
         )
       }
       return fail(
         res,
         401,
-        `Invalid username or password. ${attempt.remainingAttempts} attempt(s) remaining before a 5-minute lockout.`,
+        `Invalid username or password. ${attempt.remainingAttempts} attempt(s) remaining before a 15-minute lockout.`,
         'INVALID_CREDENTIALS'
       )
     }

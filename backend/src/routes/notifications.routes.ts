@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { query } from '../db.js'
 import { requireAuth } from '../middleware/auth.js'
-import { ah, ok } from '../utils/http.js'
+import { ah, fail, ok } from '../utils/http.js'
 
 const router = Router()
 router.use(requireAuth)
@@ -44,10 +44,11 @@ router.get(
 router.patch(
   '/:id/read',
   ah(async (req, res) => {
-    await query('UPDATE notifications SET is_read = TRUE WHERE id = $1 AND user_id = $2', [
+    const { rowCount } = await query('UPDATE notifications SET is_read = TRUE WHERE id = $1 AND user_id = $2', [
       req.params.id,
       req.user!.id,
     ])
+    if (rowCount === 0) return fail(res, 404, 'Notification not found')
     ok(res, { updated: true })
   })
 )

@@ -16,10 +16,9 @@ const trackSchema = z.object({
   batteryLevel: z.number().min(0).max(100).optional().nullable(),
 })
 
-// POST /api/tracking — client reports its location (every 30 minutes)
+// POST /api/tracking — client reports live location continuously
 router.post(
   '/',
-  requirePermission('tracking:update'),
   ah(async (req, res) => {
     const user = req.user!
     const parsed = trackSchema.safeParse(req.body)
@@ -145,6 +144,23 @@ router.get(
         trackedAt: r.tracked_at,
       })),
     })
+  })
+)
+
+// GET /api/tracking/my-admittance-code — employee's own admittance code
+router.get(
+  '/my-admittance-code',
+  requirePermission('tracking:update'),
+  ah(async (req, res) => {
+    const { rows } = await query(
+      `SELECT ac.admittance_code, ac.is_active, l.name AS location_name, l.code AS location_code, l.address AS location_address
+       FROM admittance_codes ac
+       LEFT JOIN locations l ON l.id = ac.location_id
+       WHERE ac.user_id = $1 AND ac.is_active = TRUE
+       ORDER BY ac.created_at DESC LIMIT 1`,
+      [req.user!.id]
+    )
+    ok(res, { code: rows[0] || null })
   })
 )
 

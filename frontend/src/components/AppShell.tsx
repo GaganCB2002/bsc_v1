@@ -32,11 +32,16 @@ import {
   ChevronsRight,
   ChevronLeft,
   MessageSquare,
+  Send,
 } from 'lucide-react'
 import { useAuth, can } from '../lib/auth'
 import { useTracking } from '../lib/tracking'
 import { get, patch, post } from '../lib/api'
 import { timeAgo } from '../lib/format'
+import ThemeToggle from './ThemeToggle'
+import PWAInstallBanner from './PWAInstallBanner'
+import { useSocket } from '../lib/useSocket'
+import { playNotificationSound } from '../lib/notifySound'
 
 interface NavItem {
   to: string
@@ -49,6 +54,7 @@ const USER_NAV: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/modules', label: 'My Modules', icon: FolderOpen },
   { to: '/chat', label: 'Messages', icon: MessageSquare },
+  { to: '/whatsapp', label: 'WhatsApp Hub', icon: Send },
   { to: '/history', label: 'My History', icon: History },
   { to: '/calendar', label: 'Calendar', icon: CalendarDays },
   { to: '/reports', label: 'Reports', icon: FileBarChart },
@@ -57,6 +63,7 @@ const USER_NAV: NavItem[] = [
 const SUPERVISOR_NAV: NavItem[] = [
   { to: '/supervisor', label: 'Team Dashboard', icon: LayoutDashboard },
   { to: '/chat', label: 'Messages', icon: MessageSquare },
+  { to: '/whatsapp', label: 'WhatsApp Hub', icon: Send },
   { to: '/supervisor/approvals', label: 'Approvals', icon: ClipboardCheck },
   { to: '/supervisor/employees', label: 'Employees', icon: Users },
   { to: '/supervisor/departments', label: 'Departments', icon: Building2 },
@@ -68,6 +75,7 @@ const SUPERVISOR_NAV: NavItem[] = [
 const ADMIN_NAV: NavItem[] = [
   { to: '/admin', label: 'Admin Dashboard', icon: LayoutGrid },
   { to: '/chat', label: 'Messages', icon: MessageSquare },
+  { to: '/admin/whatsapp', label: 'WhatsApp Hub', icon: Send },
   { to: '/admin/tracking', label: 'Live Tracking', icon: Satellite },
   { to: '/admin/users', label: 'Users', icon: Users },
   { to: '/admin/roles', label: 'Roles & Permissions', icon: ShieldCheck },
@@ -106,6 +114,7 @@ function LogoIcon({ size = 32, className = '' }: { size?: number; className?: st
 export default function AppShell() {
   const { user, logout } = useAuth()
   const tracking = useTracking()
+  const { socket, connected } = useSocket()
   const navigate = useNavigate()
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -156,6 +165,30 @@ export default function AppShell() {
     }
   }, [user])
 
+  // WebSocket real-time notifications
+  useEffect(() => {
+    if (!socket) return
+
+    socket.on('notification:new', () => {
+      playNotificationSound('notification')
+      void loadNotifications()
+    })
+
+    socket.on('chat:unread', (data: { senderName: string; preview: string }) => {
+      playNotificationSound('message')
+    })
+
+    socket.on('tracking:update', () => {
+      // Real-time tracking update received
+    })
+
+    return () => {
+      socket.off('notification:new')
+      socket.off('chat:unread')
+      socket.off('tracking:update')
+    }
+  }, [socket])
+
   if (!user) return null
 
   const isAdmin = user.roleName === 'ADMIN'
@@ -196,7 +229,7 @@ export default function AppShell() {
     }`
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="h-screen flex overflow-hidden bg-background">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -227,8 +260,8 @@ export default function AppShell() {
         {/* Collapse toggle - desktop only */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="hidden lg:flex items-center justify-center h-8 mx-2 mt-2 rounded-lg bg-white/5 hover:bg-white/15 text-sky-300/60 hover:text-white transition-all duration-200 text-[11px] font-semibold gap-1"
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className="hidden lg:flex items-center justify-center h-8 mx-2 mt-2 rounded-lg bg-white/5 hover:bg-white/15 text-sky-300/60 hover:text-white transition-all duration-200 text-[11px] font-semibold gap-1 tip-bottom"
+          data-tip={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <ChevronsRight className="w-3.5 h-3.5" /> : <ChevronsLeft className="w-3.5 h-3.5" />}
           {!collapsed && <span className="text-[10px]">Collapse</span>}
@@ -244,7 +277,7 @@ export default function AppShell() {
               className={NavLinkClass}
               title={collapsed ? item.label : undefined}
             >
-              <item.icon className="w-[18px] h-[18px shrink-0" />
+              <item.icon className="w-[18px] h-[18px] shrink-0" />
               {!collapsed && <span className="truncate">{item.label}</span>}
             </NavLink>
           ))}
@@ -272,7 +305,7 @@ export default function AppShell() {
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         {/* Header */}
         <header className="h-16 bg-white dark:bg-surface border-b border-border dark:border-border flex items-center gap-3 px-4 sm:px-6 sticky top-0 z-20 shadow-sm">
           {/* Mobile hamburger */}
@@ -285,9 +318,9 @@ export default function AppShell() {
 
           {/* Desktop collapse toggle (alternative in header) */}
           <button
-            className="hidden lg:flex w-9 h-9 rounded-lg hover:bg-primary-faint items-center justify-center text-text-secondary transition-colors"
+            className="hidden lg:flex w-9 h-9 rounded-lg hover:bg-primary-faint items-center justify-center text-text-secondary transition-colors tip-bottom"
             onClick={() => setCollapsed(!collapsed)}
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            data-tip={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             <Menu className="w-[18px] h-[18px]" />
           </button>
@@ -310,14 +343,25 @@ export default function AppShell() {
           </div>
 
           <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
+            {/* Dark mode toggle */}
+            <ThemeToggle />
+
             {/* Live GPS indicator */}
             <div
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] font-semibold text-emerald-700"
-              title={`Live location updates every 30 minutes. ${tracking.permissionDenied ? 'Permission denied — enable location access in your browser.' : tracking.lastSync ? `Last sync ${timeAgo(tracking.lastSync.toISOString())}` : 'Waiting for location...'}`}
+              className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-semibold ${
+                connected
+                  ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                  : 'bg-amber-50 border-amber-200 text-amber-700'
+              } tip-bottom`}
+              data-tip={
+                connected
+                  ? 'Real-time connection active — location updates are sent automatically every 30 minutes while you are signed in.'
+                  : 'Connecting to the live tracking server...'
+              }
             >
               <Satellite className="w-3.5 h-3.5 animate-pulse" />
               <span>GPS</span>
-              <span className={`w-1.5 h-1.5 rounded-full ${tracking.lastSync ? 'bg-emerald-500' : 'bg-amber-400'}`} />
+              <span className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-emerald-500' : 'bg-amber-400'}`} />
             </div>
 
             {/* Notifications */}
@@ -428,8 +472,8 @@ export default function AppShell() {
           </div>
         </header>
 
-        {/* Content */}
-        <main className="flex-1 p-4 sm:p-6 min-w-0">
+        {/* Content — scrolls internally; the page itself never scrolls */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 min-w-0">
           <Outlet />
         </main>
 
@@ -444,6 +488,7 @@ export default function AppShell() {
           </span>
         </footer>
       </div>
+      <PWAInstallBanner />
     </div>
   )
 }

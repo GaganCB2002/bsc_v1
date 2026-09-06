@@ -5,6 +5,7 @@ import { get, apiUrl } from '../lib/api'
 import { Spinner, ErrorState, PageHeader } from '../components/States'
 import StatusBadge from '../components/StatusBadge'
 import { complianceLabel, accuracyLabel, fmtDate, fmtDateTime } from '../lib/format'
+import { useChartTheme } from '../lib/chartTheme'
 
 interface HistoryItem {
   id: string
@@ -43,6 +44,7 @@ export default function History() {
   const [module, setModule] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+  const chart = useChartTheme()
 
   const load = () => {
     setLoading(true)
@@ -153,7 +155,7 @@ export default function History() {
                       <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={45} outerRadius={70} paddingAngle={3}>
                         {pieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
                       </Pie>
-                      <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }} />
+                      <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${chart.tooltipBorder}`, background: chart.tooltipBg, color: chart.tooltipText }} />
                     </PieChart>
                   </ResponsiveContainer>
                   <ul className="mt-2 space-y-1">

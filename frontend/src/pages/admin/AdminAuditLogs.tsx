@@ -3,6 +3,7 @@ import { ScrollText, Search } from 'lucide-react'
 import { get } from '../../lib/api'
 import { Spinner, ErrorState, PageHeader } from '../../components/States'
 import Modal from '../../components/Modal'
+import Pagination from '../../components/Pagination'
 import { fmtDateTime } from '../../lib/format'
 
 interface AuditRow {
@@ -36,6 +37,7 @@ export default function AdminAuditLogs() {
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(30)
   const [detail, setDetail] = useState<AuditRow | null>(null)
 
   const load = () => {
@@ -44,13 +46,13 @@ export default function AdminAuditLogs() {
     const q = new URLSearchParams()
     if (search) q.set('user', search)
     q.set('page', String(page))
-    q.set('pageSize', '30')
+    q.set('pageSize', String(pageSize))
     get<{ items: AuditRow[]; total: number; page: number; pageSize: number }>(`/api/admin/audit-logs?${q.toString()}`)
       .then(setData)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false))
   }
-  useEffect(() => { void load() }, [search, page])
+  useEffect(() => { void load() }, [search, page, pageSize])
 
   if (loading) return <Spinner />
   if (error) return <ErrorState message={error} onRetry={load} />
@@ -95,14 +97,15 @@ export default function AdminAuditLogs() {
             )}
           </tbody>
         </table>
-      </div>
-
-      <div className="flex items-center justify-between text-xs text-text-muted mt-3">
-        <span>{data?.total || 0} entries</span>
-        <div className="flex gap-2">
-          <button className="btn btn-outline btn-sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</button>
-          <button className="btn btn-outline btn-sm" disabled={(data?.page || 1) * (data?.pageSize || 30) >= (data?.total || 0)} onClick={() => setPage(page + 1)}>Next</button>
-        </div>
+        <Pagination
+          currentPage={page}
+          totalPages={Math.max(1, Math.ceil((data?.total || 0) / pageSize))}
+          totalItems={data?.total || 0}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={(sz) => { setPageSize(sz); setPage(1); }}
+          itemLabel="audit entries"
+        />
       </div>
 
       <Modal open={!!detail} onClose={() => setDetail(null)} title={`Audit detail — ${detail?.action || ''}`} wide>

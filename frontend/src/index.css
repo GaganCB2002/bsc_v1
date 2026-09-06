@@ -33,12 +33,31 @@ html, body, #root {
   height: 100%;
 }
 
+html {
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
 body {
   font-family: var(--font-sans);
   background: var(--color-background);
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-timing-function: ease;
+  transition-duration: 0s;
+}
+
+html.dark *,
+html.dark *::before,
+html.dark *::after {
+  transition-duration: 0.35s;
 }
 
 /* ── Dark Mode ────────────────────────────────────────────── */
@@ -80,6 +99,70 @@ html.dark ::-webkit-scrollbar-thumb:hover { background: #475569; }
 .scrollbar-thin::-webkit-scrollbar { width: 4px; }
 .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
 .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+
+/* ------------------------------------------------------------
+   Custom hover tooltips
+   Long tooltip text scrolls INSIDE the tooltip — the page itself
+   never scrolls when the cursor hovers an element.
+------------------------------------------------------------ */
+[data-tip] { position: relative; }
+[data-tip]::after,
+[data-tip]::before {
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease 0.2s;
+}
+[data-tip]:hover::after,
+[data-tip]:hover::before,
+[data-tip]:focus-visible::after,
+[data-tip]:focus-visible::before {
+  opacity: 1;
+}
+[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  z-index: 90;
+  width: max-content;
+  max-width: 300px;
+  max-height: 140px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #f8fafc;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.45;
+  text-align: left;
+  white-space: normal;
+  word-break: break-word;
+  box-shadow: 0 10px 28px rgba(2, 6, 23, 0.45);
+}
+/* Placement below the element (safe inside the fixed header) */
+[data-tip].tip-bottom::after { top: calc(100% + 8px); left: 50%; transform: translateX(-50%); }
+[data-tip].tip-bottom::before {
+  content: '';
+  position: absolute;
+  z-index: 90;
+  top: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-bottom-color: #0f172a;
+}
+/* Placement to the right of the element (collapsed sidebar) */
+[data-tip].tip-right::after { left: calc(100% + 10px); top: 50%; transform: translateY(-50%); }
+[data-tip].tip-right::before {
+  content: '';
+  position: absolute;
+  z-index: 90;
+  left: calc(100% + 4px);
+  top: 50%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-right-color: #0f172a;
+}
 
 /* Card */
 .card {

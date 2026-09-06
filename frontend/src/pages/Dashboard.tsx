@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ClipboardList,
@@ -12,6 +12,9 @@ import {
   AlertTriangle,
   MapPin,
   Loader2,
+  Crosshair,
+  Check,
+  Search,
 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from 'recharts'
 import { get } from '../lib/api'
@@ -21,6 +24,8 @@ import StatusBadge from '../components/StatusBadge'
 import { fmtDateTime } from '../lib/format'
 import { useTracking } from '../lib/tracking'
 import { timeAgo } from '../lib/format'
+import { useChartTheme } from '../lib/chartTheme'
+import GlobalSearchModal from '../components/GlobalSearchModal'
 
 interface DashboardData {
   kpis: {
@@ -58,7 +63,30 @@ export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [searchOpen, setSearchOpen] = useState(false)
   const tracking = useTracking()
+  const chart = useChartTheme()
+  const [locating, setLocating] = useState(false)
+  const [located, setLocated] = useState(false)
+  const [admittanceCode, setAdmittanceCode] = useState<{ admittance_code: string; location_name: string; location_address: string | null } | null>(null)
+
+  useEffect(() => {
+    get<{ code: typeof admittanceCode }>('/api/tracking/my-admittance-code')
+      .then((d) => setAdmittanceCode(d.code))
+      .catch(() => {})
+  }, [])
+
+  const handleGetLocation = useCallback(() => {
+    setLocating(true)
+    setLocated(false)
+    tracking.syncNow().then(() => {
+      setLocating(false)
+      setLocated(true)
+      setTimeout(() => setLocated(false), 3000)
+    }).catch(() => {
+      setLocating(false)
+    })
+  }, [tracking])
 
   const load = () => {
     setLoading(true)
@@ -83,6 +111,26 @@ export default function Dashboard() {
         subtitle="Today's checkpoints, compliance summary and live activity"
         actions={
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-colors"
+            >
+              <Search className="w-3.5 h-3.5" /> Search
+            </button>
+            <button
+              onClick={handleGetLocation}
+              disabled={locating || tracking.syncing}
+              className="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-full text-[11px] font-semibold transition-colors disabled:opacity-50"
+            >
+              {locating ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : located ? (
+                <Check className="w-3.5 h-3.5" />
+              ) : (
+                <Crosshair className="w-3.5 h-3.5" />
+              )}
+              {locating ? 'Getting Location...' : located ? 'Location Captured!' : 'Get Location'}
+            </button>
             {tracking.error ? (
               <span className="inline-flex items-center gap-1.5 bg-red-500/20 text-red-100 px-3 py-1.5 rounded-full text-[11px] font-semibold">
                 <AlertTriangle className="w-3.5 h-3.5" />
@@ -114,6 +162,23 @@ export default function Dashboard() {
           </div>
         }
       />
+
+      <GlobalSearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+      {/* Admittance Code */}
+      {admittanceCode && (
+        <div className="mb-6 bg-gradient-to-r from-sky-50 to-blue-50 border border-sky-200 rounded-2xl p-4 flex items-center gap-4">
+          <div className="w-14 h-14 rounded-xl bg-sky-600 text-white flex items-center justify-center text-lg font-black tracking-wider shrink-0">
+            {admittanceCode.admittance_code}
+          </div>
+          <div>
+            <p className="text-xs font-bold text-sky-900">Your Admittance Code</p>
+            <p className="text-[11px] text-sky-700 mt-0.5">Present this code at: {admittanceCode.location_name}</p>
+            {admittanceCode.location_address && (
+              <p className="text-[10px] text-sky-500 mt-0.5">{admittanceCode.location_address}</p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-6">
@@ -170,10 +235,10 @@ export default function Dashboard() {
           </h2>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={weekly} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} allowDecimals={false} />
-              <Tooltip cursor={{ fill: '#f0f9ff' }} contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chart.gridColor} vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: chart.textColor }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: chart.textColor }} axisLine={false} tickLine={false} allowDecimals={false} />
+              <Tooltip cursor={{ fill: chart.cursorFill }} contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${chart.tooltipBorder}`, background: chart.tooltipBg, color: chart.tooltipText }} />
               <Bar dataKey="submissions" name="Submissions" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
               <Bar dataKey="approved" name="Approved" fill="#16a34a" radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -215,7 +280,7 @@ export default function Dashboard() {
                 <Cell fill="#0284c7" />
                 <Cell fill="#dc2626" />
               </Pie>
-              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }} />
+              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${chart.tooltipBorder}`, background: chart.tooltipBg, color: chart.tooltipText }} />
             </PieChart>
           </ResponsiveContainer>
           <div className="flex justify-center gap-4 text-[11px] font-medium text-text-secondary mt-2">

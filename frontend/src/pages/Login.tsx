@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Loader2, AlertCircle, Lock, User, Eye, EyeOff, ArrowRight, Shield, Satellite, CheckCircle2, MapPin, KeyRound } from 'lucide-react'
+import { Loader2, AlertCircle, Lock, User, Eye, EyeOff, ArrowRight, Shield, Satellite, CheckCircle2, MapPin, KeyRound, Clock } from 'lucide-react'
 import { post } from '../lib/api'
 import { useAuth } from '../lib/auth'
+import ThemeToggle from '../components/ThemeToggle'
 
 function LogoMark({ size = 40, className = '' }: { size?: number; className?: string }) {
   return <img src="/bsc-logo.png" alt="BSC Exclusive" width={size} height={size} className={`rounded-lg object-contain ${className}`} />
@@ -20,6 +21,8 @@ export default function Login() {
   const navigate = useNavigate()
   const location = useLocation()
   const { refresh } = useAuth()
+  const searchParams = new URLSearchParams(location.search)
+  const isExpired = searchParams.get('expired') === '1'
 
   const fillAdmin = () => {
     setUsername(ADMIN_CREDENTIALS.username)
@@ -123,24 +126,38 @@ export default function Login() {
       </div>
 
       {/* Right Form Panel */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-8 bg-gradient-to-br from-slate-50 via-white to-sky-50/30">
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-8 bg-gradient-to-br from-slate-50 via-white to-sky-50/30 dark:from-[#0b1120] dark:via-[#0f172a] dark:to-[#1e293b]">
         <div className="w-full max-w-[400px]">
-          {/* Mobile Logo */}
+          {/* Theme toggle + Mobile Logo */}
+          <div className="flex items-center justify-between mb-6">
+            <div />
+            <ThemeToggle />
+          </div>
           <div className="lg:hidden flex items-center gap-3 mb-10 justify-center">
             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center shadow-lg shadow-sky-500/25">
               <LogoMark size={28} />
             </div>
             <div>
-              <p className="font-bold text-slate-900 leading-tight">BSC Exclusive</p>
-              <p className="text-[10px] text-sky-600 font-semibold tracking-wider">PROCESS TRACKING</p>
+              <p className="font-bold text-slate-900 dark:text-white leading-tight">BSC Exclusive</p>
+              <p className="text-[10px] text-sky-600 dark:text-sky-400 font-semibold tracking-wider">PROCESS TRACKING</p>
             </div>
           </div>
 
           {/* Welcome text */}
           <div className="mb-8">
-            <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Welcome back</h2>
-            <p className="text-sm text-slate-500 mt-2">Sign in to access your dashboard and manage checkpoints.</p>
+            <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Welcome back</h2>
+            <p className="text-sm text-slate-500 dark:text-gray-400 mt-2">Sign in to access your dashboard and manage checkpoints.</p>
           </div>
+
+          {/* Session Expired Notice */}
+          {isExpired && !error && (
+            <div className="flex items-start gap-3 px-4 py-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-sm mb-6 animate-fade-in">
+              <Clock className="w-4.5 h-4.5 shrink-0 mt-[1px] text-amber-500" />
+              <span className="leading-relaxed font-medium">
+                Your session was automatically signed out due to 2 hours of inactivity. Please sign in again.
+              </span>
+            </div>
+          )}
 
           {/* Error */}
           {error && (
@@ -154,13 +171,13 @@ export default function Login() {
           <form onSubmit={submit} className="space-y-5">
             {/* Username */}
             <div>
-              <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Username or Email</label>
+              <label className="text-xs font-bold text-slate-600 dark:text-gray-300 uppercase tracking-wider mb-2 block">Username or Email</label>
               <div className="relative">
                 <div className="absolute left-0 top-0 bottom-0 w-12 flex items-center justify-center border-r border-slate-200">
                   <User className="w-4 h-4 text-slate-400" />
                 </div>
                 <input
-                  className="w-full pl-14 pr-4 py-3.5 bg-white border-2 border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 transition-all"
+                  className="w-full pl-14 pr-4 py-3.5 bg-white dark:bg-gray-800 border-2 border-slate-200 dark:border-gray-700 rounded-xl text-sm text-slate-900 dark:text-gray-100 placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 transition-all"
                   placeholder="Enter your username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -172,14 +189,14 @@ export default function Login() {
 
             {/* Password */}
             <div>
-              <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Password</label>
+              <label className="text-xs font-bold text-slate-600 dark:text-gray-300 uppercase tracking-wider mb-2 block">Password</label>
               <div className="relative">
                 <div className="absolute left-0 top-0 bottom-0 w-12 flex items-center justify-center border-r border-slate-200">
                   <Lock className="w-4 h-4 text-slate-400" />
                 </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  className="w-full pl-14 pr-12 py-3.5 bg-white border-2 border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 transition-all"
+                  className="w-full pl-14 pr-12 py-3.5 bg-white dark:bg-gray-800 border-2 border-slate-200 dark:border-gray-700 rounded-xl text-sm text-slate-900 dark:text-gray-100 placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 transition-all"
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -217,13 +234,13 @@ export default function Login() {
 
           {/* Divider */}
           <div className="flex items-center gap-4 my-8">
-            <div className="flex-1 h-px bg-slate-200" />
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Secure Login</span>
-            <div className="flex-1 h-px bg-slate-200" />
+            <div className="flex-1 h-px bg-slate-200 dark:bg-gray-700" />
+            <span className="text-[11px] font-semibold text-slate-400 dark:text-gray-500 uppercase tracking-wider">Secure Login</span>
+            <div className="flex-1 h-px bg-slate-200 dark:bg-gray-700" />
           </div>
 
           {/* Security badges */}
-          <div className="flex items-center justify-center gap-6 text-[11px] text-slate-400">
+          <div className="flex items-center justify-center gap-6 text-[11px] text-slate-400 dark:text-gray-500">
             <span className="flex items-center gap-1.5">
               <Shield className="w-3.5 h-3.5 text-emerald-500" />
               <span>SSL Encrypted</span>
@@ -239,23 +256,23 @@ export default function Login() {
             <button
               type="button"
               onClick={fillAdmin}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed border-sky-200 bg-sky-50/50 hover:bg-sky-50 hover:border-sky-300 transition-all group"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed border-sky-200 dark:border-gray-600 bg-sky-50/50 dark:bg-gray-800/50 hover:bg-sky-50 dark:hover:bg-gray-800 hover:border-sky-300 dark:hover:border-gray-500 transition-all group"
             >
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-sky-500/20">
                 <KeyRound className="w-4.5 h-4.5" />
               </div>
               <div className="text-left flex-1">
-                <p className="text-sm font-bold text-slate-800 group-hover:text-sky-700 transition-colors">Admin Login</p>
-                <p className="text-[11px] text-slate-500">Click to auto-fill admin credentials</p>
+                <p className="text-sm font-bold text-slate-800 dark:text-gray-100 group-hover:text-sky-700 dark:group-hover:text-sky-400 transition-colors">Admin Login</p>
+                <p className="text-[11px] text-slate-500 dark:text-gray-400">Click to auto-fill admin credentials</p>
               </div>
               <span className="text-[10px] font-bold text-sky-500 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-wider">Fill →</span>
             </button>
           </div>
 
           {/* Back to home */}
-          <p className="text-center text-xs text-slate-400 mt-6">
-            <Link to="/" className="hover:text-sky-600 transition-colors font-medium inline-flex items-center gap-1">
-              <span className="text-slate-300">←</span> Back to home
+          <p className="text-center text-xs text-slate-400 dark:text-gray-500 mt-6">
+            <Link to="/" className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors font-medium inline-flex items-center gap-1">
+              <span className="text-slate-300 dark:text-gray-600">←</span> Back to home
             </Link>
           </p>
         </div>

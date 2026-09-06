@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { get } from '../../lib/api'
 import { Spinner, ErrorState, PageHeader } from '../../components/States'
 import { complianceLabel } from '../../lib/format'
+import { useChartTheme } from '../../lib/chartTheme'
 
 interface ReportsData {
   byEmployee: { full_name: string; total: number; approved: number; rejected: number; pending: number; rate: number }[]
@@ -20,6 +21,7 @@ export default function SupervisorReports() {
   const [data, setData] = useState<ReportsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const chart = useChartTheme()
 
   const load = () => {
     setLoading(true)
@@ -46,10 +48,10 @@ export default function SupervisorReports() {
           <h3 className="text-sm font-bold text-text mb-3 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" /> 14-day team trend</h3>
           <ResponsiveContainer width="100%" height={230}>
             <BarChart data={trend} margin={{ top: 5, right: 10, left: -25, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} allowDecimals={false} />
-              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chart.gridColor} vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: chart.textColor }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: chart.textColor }} axisLine={false} tickLine={false} allowDecimals={false} />
+              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${chart.tooltipBorder}`, background: chart.tooltipBg, color: chart.tooltipText }} />
               <Bar dataKey="total" name="Total" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
               <Bar dataKey="approved" name="Approved" fill="#16a34a" radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -66,7 +68,7 @@ export default function SupervisorReports() {
                 <Pie data={compliancePie} dataKey="value" nameKey="name" innerRadius={48} outerRadius={82} paddingAngle={3}>
                   {compliancePie.map((p) => <Cell key={p.name} fill={COMPLIANCE_COLORS[p.raw] || '#0ea5e9'} />)}
                 </Pie>
-                <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }} />
+                <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${chart.tooltipBorder}`, background: chart.tooltipBg, color: chart.tooltipText }} />
               </PieChart>
             </ResponsiveContainer>
           )}

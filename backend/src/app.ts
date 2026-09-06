@@ -19,6 +19,8 @@ import trackingRoutes from './routes/tracking.routes.js'
 import adminRoutes from './routes/admin.routes.js'
 import supervisorRoutes from './routes/supervisor.routes.js'
 import chatRoutes from './routes/chat.routes.js'
+import searchRoutes from './routes/search.routes.js'
+import whatsappRoutes from './routes/whatsapp.routes.js'
 import { ping } from './db.js'
 import { apiRateLimiter } from './middleware/rateLimit.js'
 
@@ -76,6 +78,8 @@ export function createApp() {
   app.use('/api/supervisor', supervisorRoutes)
   app.use('/api/chat', chatRoutes)
   app.use('/api/admin', adminRoutes)
+  app.use('/api/search', searchRoutes)
+  app.use('/api/whatsapp', whatsappRoutes)
 
   // 404
   app.use((_req, res) => {

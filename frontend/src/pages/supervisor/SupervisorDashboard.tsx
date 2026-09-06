@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Users, CheckCircle2, ClipboardCheck, FolderOpen, Building2, Clock, Activity, ArrowRight, FileBarChart, ScrollText, UserRound,
+  Users, CheckCircle2, ClipboardCheck, FolderOpen, Building2, Clock, Activity, ArrowRight, FileBarChart, ScrollText, UserRound, Search,
 } from 'lucide-react'
 import { get } from '../../lib/api'
 import { Spinner, ErrorState, PageHeader } from '../../components/States'
 import StatCard from '../../components/StatCard'
 import StatusBadge from '../../components/StatusBadge'
 import { fmtDateTime } from '../../lib/format'
+import GlobalSearchModal from '../../components/GlobalSearchModal'
 
 interface DashData {
   totalEmployees: number
@@ -24,6 +25,7 @@ export default function SupervisorDashboard() {
   const [data, setData] = useState<DashData | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [searchOpen, setSearchOpen] = useState(false)
 
   const load = () => {
     setLoading(true)
@@ -47,11 +49,19 @@ export default function SupervisorDashboard() {
         subtitle="Your team's compliance overview"
         actions={
           <>
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-sm border border-white/10 shadow-xs transition-colors"
+            >
+              <Search className="w-3.5 h-3.5" /> Search
+            </button>
             <Link to="/supervisor/activity" className="inline-flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"><ScrollText className="w-3.5 h-3.5" /> Activity</Link>
             <Link to="/supervisor/profile" className="inline-flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"><UserRound className="w-3.5 h-3.5" /> Profile</Link>
           </>
         }
       />
+
+      <GlobalSearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
 
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3 mb-4">
         <StatCard label="Team Members" value={data.totalEmployees} icon={Users} />

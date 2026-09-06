@@ -4,6 +4,7 @@ import { ListChecks, Plus, Pencil, Trash2, Loader2, Search } from 'lucide-react'
 import { get, post, put, del } from '../../lib/api'
 import { Spinner, ErrorState, PageHeader } from '../../components/States'
 import Modal from '../../components/Modal'
+import Pagination from '../../components/Pagination'
 
 interface Checkpoint {
   id: string
@@ -28,6 +29,8 @@ const emptyForm = { moduleId: '', title: '', description: '', score: 5, isAccura
 export default function AdminCheckpoints() {
   const [items, setItems] = useState<Checkpoint[]>([])
   const [modules, setModules] = useState<ModuleOpt[]>([])
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
@@ -103,43 +106,58 @@ export default function AdminCheckpoints() {
       <div className="card p-4 mb-4">
         <div className="relative max-w-sm">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input className="input pl-9" placeholder="Search checkpoints..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          <input className="input pl-9" placeholder="Search checkpoints..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} />
         </div>
       </div>
-      <div className="card overflow-x-auto">
-        <table className="table">
-          <thead>
-            <tr><th>Checkpoint</th><th>Module</th><th>Department</th><th>Score</th><th>Requirements</th><th>Submissions</th><th className="text-right">Actions</th></tr>
-          </thead>
-          <tbody>
-            {items.map((c) => (
-              <tr key={c.id}>
-                <td className="max-w-[260px]">
-                  <p className="font-semibold text-text truncate">{c.title}</p>
-                  <p className="text-[11px] text-text-muted line-clamp-1">{c.description || '—'}</p>
-                </td>
-                <td>{c.module_name}</td>
-                <td>{c.department_name}</td>
-                <td>{c.score}</td>
-                <td>
-                  <div className="flex flex-wrap gap-1">
-                    {c.is_accuracy_required && <span className="px-1.5 py-0.5 rounded bg-info-bg text-info text-[9px] font-bold">ACCURACY</span>}
-                    {c.is_corrective_action_required && <span className="px-1.5 py-0.5 rounded bg-warning-bg text-warning text-[9px] font-bold">CORRECTIVE</span>}
-                    {c.is_photo_required && <span className="px-1.5 py-0.5 rounded bg-primary-light text-primary-deep text-[9px] font-bold">EVIDENCE</span>}
-                    {!c.is_accuracy_required && !c.is_corrective_action_required && !c.is_photo_required && <span className="text-text-muted text-[10px]">—</span>}
-                  </div>
-                </td>
-                <td>{c.submission_count}</td>
-                <td>
-                  <div className="flex justify-end gap-1">
-                    <button className="btn btn-ghost btn-sm" onClick={() => openEdit(c)}><Pencil className="w-3.5 h-3.5" /></button>
-                    <button className="btn btn-ghost btn-sm text-danger" onClick={() => void remove(c)}><Trash2 className="w-3.5 h-3.5" /></button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="table">
+            <thead>
+              <tr><th>Checkpoint</th><th>Module</th><th>Department</th><th>Score</th><th>Requirements</th><th>Submissions</th><th className="text-right">Actions</th></tr>
+            </thead>
+            <tbody>
+              {items.length === 0 ? (
+                <tr><td colSpan={7} className="text-center py-10 text-text-muted">No checkpoints found.</td></tr>
+              ) : (
+                items.slice((page - 1) * pageSize, page * pageSize).map((c) => (
+                  <tr key={c.id}>
+                    <td className="max-w-[260px]">
+                      <p className="font-semibold text-text truncate">{c.title}</p>
+                      <p className="text-[11px] text-text-muted line-clamp-1">{c.description || '—'}</p>
+                    </td>
+                    <td>{c.module_name}</td>
+                    <td>{c.department_name}</td>
+                    <td>{c.score}</td>
+                    <td>
+                      <div className="flex flex-wrap gap-1">
+                        {c.is_accuracy_required && <span className="px-1.5 py-0.5 rounded bg-info-bg text-info text-[9px] font-bold">ACCURACY</span>}
+                        {c.is_corrective_action_required && <span className="px-1.5 py-0.5 rounded bg-warning-bg text-warning text-[9px] font-bold">CORRECTIVE</span>}
+                        {c.is_photo_required && <span className="px-1.5 py-0.5 rounded bg-primary-light text-primary-deep text-[9px] font-bold">EVIDENCE</span>}
+                        {!c.is_accuracy_required && !c.is_corrective_action_required && !c.is_photo_required && <span className="text-text-muted text-[10px]">—</span>}
+                      </div>
+                    </td>
+                    <td>{c.submission_count}</td>
+                    <td>
+                      <div className="flex justify-end gap-1">
+                        <button className="btn btn-ghost btn-sm" onClick={() => openEdit(c)}><Pencil className="w-3.5 h-3.5" /></button>
+                        <button className="btn btn-ghost btn-sm text-danger" onClick={() => void remove(c)}><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+        <Pagination
+          currentPage={page}
+          totalPages={Math.max(1, Math.ceil(items.length / pageSize))}
+          totalItems={items.length}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={(sz) => { setPageSize(sz); setPage(1); }}
+          itemLabel="checkpoints"
+        />
       </div>
 
       <Modal open={modal} onClose={() => setModal(false)} title={editing ? `Edit ${editing.title}` : 'New checkpoint'}>

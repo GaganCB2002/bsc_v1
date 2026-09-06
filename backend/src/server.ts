@@ -2,6 +2,7 @@ import { createApp } from './app.js'
 import { config } from './config.js'
 import { pingWithRetry } from './db.js'
 import { startAutoApprovalJob } from './jobs/autoApproval.js'
+import { initWebSocket } from './websocket.js'
 
 async function main() {
   console.log(`[server] Starting BSC Exclusive Tracking API...`)
@@ -15,13 +16,16 @@ async function main() {
     console.log(`[server] DB SSL: ${config.dbSsl ? 'enabled' : 'disabled'}`)
   })
 
+  // Initialize WebSocket
+  initWebSocket(server)
+
   console.log('[server] Verifying database connectivity...')
   const dbOk = await pingWithRetry(5, 3000)
   if (!dbOk) {
     console.error('[server] FATAL: Could not connect to the database after 5 attempts.')
     console.error('[server] Check that DATABASE_URL is set correctly in your Render environment.')
     console.error('[server] Supabase pooler format: postgresql://postgres.PROJECT_REF:PASSWORD@aws-0-REGION.pooler.supabase.com:6543/postgres')
-    console.error('[server] In Render dashboard: your service → Environment → add/set DATABASE_URL')
+    console.error('[server] In Render dashboard: your service → Environment → add DATABASE_URL')
     server.close(() => {
       process.exit(1)
     })

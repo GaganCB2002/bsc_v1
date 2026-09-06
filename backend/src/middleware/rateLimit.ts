@@ -103,7 +103,7 @@ interface LoginAttemptRecord {
 const loginAttempts = new Map<string, LoginAttemptRecord>()
 
 const MAX_LOGIN_ATTEMPTS = 5
-const LOCKOUT_DURATION_MS = 5 * 60 * 1000 // 5 minutes
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000 // 15 minutes
 
 function getLoginKey(username: string, ip: string): string {
   return `${username.toLowerCase().trim()}:${ip}`
@@ -134,6 +134,15 @@ export function checkLoginLockout(username: string, ip: string): {
   }
 
   return { locked: false, remainingSec: 0, attempts: record.failedAttempts }
+}
+
+export function unlockUser(username: string): void {
+  const userLower = username.toLowerCase().trim()
+  for (const key of loginAttempts.keys()) {
+    if (key.startsWith(`${userLower}:`)) {
+      loginAttempts.delete(key)
+    }
+  }
 }
 
 export function recordFailedAttempt(

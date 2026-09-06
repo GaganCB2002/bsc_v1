@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Satellite, MapPin, Battery, RefreshCw, Radio, Plus, Trash2 } from 'lucide-react'
+import { Satellite, MapPin, Battery, RefreshCw, Radio, Plus, Trash2, Key, ShieldCheck } from 'lucide-react'
 import { get, post, del } from '../../lib/api'
 import { Spinner, ErrorState, PageHeader } from '../../components/States'
 import Modal from '../../components/Modal'
@@ -45,6 +45,11 @@ export default function AdminTracking() {
   const [locLng, setLocLng] = useState('')
   const [saving, setSaving] = useState(false)
   const [locError, setLocError] = useState('')
+  const [admittanceCodes, setAdmittanceCodes] = useState<{ id: string; user_id: string; user_name: string; employee_code: string; location_name: string; admittance_code: string; is_active: boolean }[]>([])
+  const [showCodeModal, setShowCodeModal] = useState(false)
+  const [codeUserId, setCodeUserId] = useState('')
+  const [codeLocationId, setCodeLocationId] = useState('')
+  const [savingCode, setSavingCode] = useState(false)
 
   const load = () => {
     setLoading(true)
@@ -59,6 +64,13 @@ export default function AdminTracking() {
     void load()
     const id = setInterval(() => void load(), 60000)
     return () => clearInterval(id)
+  }, [])
+
+  // Load admittance codes
+  useEffect(() => {
+    get<{ codes: typeof admittanceCodes }>('/api/admin/admittance-codes')
+      .then((d) => setAdmittanceCodes(d.codes))
+      .catch(() => {})
   }, [])
 
   const openHistory = async (u: TrackUser) => {
@@ -106,6 +118,32 @@ export default function AdminTracking() {
     }
   }
 
+  const assignAdmittanceCode = async () => {
+    if (!codeUserId || !codeLocationId) return
+    setSavingCode(true)
+    try {
+      await post('/api/admin/admittance-codes', { userId: codeUserId, locationId: codeLocationId })
+      const d = await get<{ codes: typeof admittanceCodes }>('/api/admin/admittance-codes')
+      setAdmittanceCodes(d.codes)
+      setShowCodeModal(false)
+      setCodeUserId('')
+      setCodeLocationId('')
+    } catch (e) {
+      setError((e as Error).message)
+    } finally {
+      setSavingCode(false)
+    }
+  }
+
+  const deleteAdmittanceCode = async (id: string) => {
+    try {
+      await del(`/api/admin/admittance-codes/${id}`)
+      setAdmittanceCodes((prev) => prev.filter((c) => c.id !== id))
+    } catch (e) {
+      setError((e as Error).message)
+    }
+  }
+
   if (loading && !data) return <Spinner text="Loading live locations..." />
   if (error && !data) return <ErrorState message={error} onRetry={load} />
 
@@ -138,7 +176,7 @@ export default function AdminTracking() {
     <div>
       <PageHeader
         title="Live Tracking"
-        subtitle={`Team locations update automatically every 30 minutes · ${onlineCount} online now`}
+        subtitle={`Real-time location updates via WebSocket · ${onlineCount} online now`}
         actions={
           <>
             <button onClick={() => void load()} className="inline-flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
@@ -176,6 +214,15 @@ export default function AdminTracking() {
                 <p className="text-[11px] text-text-muted mt-0.5">
                   {u.roleName}{u.departmentName ? ` · ${u.departmentName}` : ''} · {u.employeeCode}
                 </p>
+                {(() => {
+                  const ac = admittanceCodes.find((c) => c.user_id === u.userId && c.is_active)
+                  if (!ac) return null
+                  return (
+                    <p className="text-[10px] text-primary-deep mt-1 flex items-center gap-1.5 font-mono font-bold">
+                      <Key className="w-3 h-3" /> {ac.admittance_code} — {ac.location_name}
+                    </p>
+                  )
+                })()}
                 <p className="text-[11px] text-text-secondary mt-1 flex items-center gap-1.5">
                   <MapPin className="w-3 h-3 text-primary shrink-0" />
                   {u.latitude ? `${u.latitude.toFixed(5)}, ${u.longitude?.toFixed(5)}` : 'No location reported yet'}
@@ -207,6 +254,40 @@ export default function AdminTracking() {
                   </button>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Admittance Codes */}
+          <div className="border-t border-border px-5 py-4">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-[11px] font-bold text-text-muted uppercase tracking-wide flex items-center gap-1.5">
+                <Key className="w-3 h-3" /> Admittance Codes
+              </h4>
+              <button onClick={() => setShowCodeModal(true)} className="text-[10px] font-bold text-primary hover:text-primary-dark">
+                + Assign
+              </button>
+            </div>
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {admittanceCodes.length === 0 ? (
+                <p className="text-[10px] text-text-muted">No codes assigned yet</p>
+              ) : (
+                admittanceCodes.map((ac) => (
+                  <div key={ac.id} className="flex items-center justify-between gap-2 text-xs">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-semibold text-text truncate">{ac.user_name}</p>
+                      <p className="text-[9px] text-text-muted">{ac.location_name}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${ac.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+                        {ac.admittance_code}
+                      </span>
+                      <button onClick={() => void deleteAdmittanceCode(ac.id)} className="text-text-muted hover:text-danger">
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -255,6 +336,34 @@ export default function AdminTracking() {
           </div>
           <button className="btn btn-primary w-full" onClick={() => void saveOffice()} disabled={saving}>
             {saving ? 'Saving...' : 'Add office'}
+          </button>
+        </div>
+      </Modal>
+
+      {/* Assign admittance code modal */}
+      <Modal open={showCodeModal} onClose={() => setShowCodeModal(false)} title="Assign Admittance Code">
+        <div className="space-y-3">
+          <p className="text-xs text-text-secondary">Assign a location and admittance code to a team member. The code will be displayed during live tracking.</p>
+          <div>
+            <label className="label">Select User *</label>
+            <select className="input" value={codeUserId} onChange={(e) => setCodeUserId(e.target.value)}>
+              <option value="">Choose user...</option>
+              {(data?.users || []).map((u) => (
+                <option key={u.userId} value={u.userId}>{u.fullName} ({u.employeeCode})</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="label">Select Location *</label>
+            <select className="input" value={codeLocationId} onChange={(e) => setCodeLocationId(e.target.value)}>
+              <option value="">Choose location...</option>
+              {(data?.offices || []).map((o) => (
+                <option key={o.id} value={o.id}>{o.name} ({o.code})</option>
+              ))}
+            </select>
+          </div>
+          <button className="btn btn-primary w-full" onClick={() => void assignAdmittanceCode()} disabled={savingCode || !codeUserId || !codeLocationId}>
+            {savingCode ? 'Assigning...' : 'Generate & Assign Code'}
           </button>
         </div>
       </Modal>

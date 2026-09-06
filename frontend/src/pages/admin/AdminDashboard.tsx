@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Users, Building2, FolderOpen, ListChecks, ClipboardCheck, Paperclip,
-  Satellite, CheckCircle2, Clock, AlertTriangle, Activity, ArrowRight, MapPin,
+  Satellite, CheckCircle2, Clock, AlertTriangle, Activity, ArrowRight, MapPin, ShieldCheck, Search,
 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from 'recharts'
 import { get } from '../../lib/api'
@@ -10,6 +10,9 @@ import { Spinner, ErrorState, PageHeader } from '../../components/States'
 import StatCard from '../../components/StatCard'
 import StatusBadge from '../../components/StatusBadge'
 import { fmtDateTime, timeAgo } from '../../lib/format'
+import { useChartTheme } from '../../lib/chartTheme'
+import GlobalSearchModal from '../../components/GlobalSearchModal'
+import UserAnalyticsCharts from '../../components/UserAnalyticsCharts'
 
 interface AdminDashboardData {
   counts: {
@@ -22,6 +25,7 @@ interface AdminDashboardData {
     approvedToday: number
     evidence: number
     onlineTrackers: number
+    roles?: number
   }
   trend: { day: string; total: number; approved: number }[]
   statusDistribution: { status: string; c: number }[]
@@ -39,6 +43,8 @@ export default function AdminDashboard() {
   const [data, setData] = useState<AdminDashboardData | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const chart = useChartTheme()
 
   const load = () => {
     setLoading(true)
@@ -59,7 +65,26 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      <PageHeader title="Admin Dashboard" subtitle="Complete overview of the tracking system" />
+      <PageHeader
+        title="Admin Dashboard"
+        subtitle="Complete overview of the tracking system"
+        actions={
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-sm border border-white/10 shadow-xs transition-colors"
+          >
+            <Search className="w-3.5 h-3.5" />
+            <span>Search System...</span>
+            <kbd className="text-[10px] bg-black/25 px-1.5 py-0.5 rounded text-white/80">Ctrl+K</kbd>
+          </button>
+        }
+      />
+
+      {/* Global Search Modal */}
+      <GlobalSearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+
+      {/* Live Customer & BSC User Analytics */}
+      <UserAnalyticsCharts />
 
       {/* KPI grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 mb-4">
@@ -72,6 +97,7 @@ export default function AdminDashboard() {
         <StatCard label="Approved Today" value={data.counts.approvedToday} icon={CheckCircle2} tone="success" />
         <StatCard label="Evidence Files" value={data.counts.evidence} icon={Paperclip} tone="info" />
         <StatCard label="Online Trackers" value={data.counts.onlineTrackers} icon={Satellite} tone="primary" hint="Live GPS · 30 min cycle" />
+        <StatCard label="Roles Created" value={data.counts.roles ?? 5} icon={ShieldCheck} tone="primary" hint="Role-based permissions" />
         <StatCard label="Log Entries" value="Live" icon={Activity} tone="success" hint="Audit trail active" />
       </div>
 
@@ -81,10 +107,10 @@ export default function AdminDashboard() {
           <h3 className="text-sm font-bold text-text mb-3">Submissions — last 14 days</h3>
           <ResponsiveContainer width="100%" height={230}>
             <BarChart data={trend} margin={{ top: 5, right: 10, left: -25, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} allowDecimals={false} />
-              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chart.gridColor} vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: chart.textColor }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: chart.textColor }} axisLine={false} tickLine={false} allowDecimals={false} />
+              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${chart.tooltipBorder}`, background: chart.tooltipBg, color: chart.tooltipText }} />
               <Bar dataKey="total" name="Total" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
               <Bar dataKey="approved" name="Approved" fill="#16a34a" radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -99,7 +125,7 @@ export default function AdminDashboard() {
               <Pie data={statusPie} dataKey="value" nameKey="name" innerRadius={45} outerRadius={78} paddingAngle={3}>
                 {statusPie.map((s) => <Cell key={s.name} fill={STATUS_COLORS[s.name] || '#94a3b8'} />)}
               </Pie>
-              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }} />
+              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${chart.tooltipBorder}`, background: chart.tooltipBg, color: chart.tooltipText }} />
             </PieChart>
           </ResponsiveContainer>
           <div className="flex justify-center gap-3 flex-wrap text-[10px] font-semibold text-text-secondary mt-1">

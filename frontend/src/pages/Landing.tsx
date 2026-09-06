@@ -17,11 +17,10 @@ import {
   ScrollText,
   BarChart3,
   X,
-  Sun,
-  Moon,
 } from 'lucide-react'
 import { get } from '../lib/api'
 import { useTheme } from '../lib/theme'
+import ThemeToggle from '../components/ThemeToggle'
 
 interface Stats {
   modules: number
@@ -57,7 +56,7 @@ const STEPS = [
 export default function Landing() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [policyModal, setPolicyModal] = useState<'terms' | 'privacy' | 'cookies' | null>(null)
-  const { theme, toggle } = useTheme()
+  const { theme } = useTheme()
 
   useEffect(() => {
     get<Stats>('/api/public/stats')
@@ -83,14 +82,8 @@ export default function Landing() {
             <a href="#security" className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Security</a>
           </nav>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={toggle}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              title={theme === 'light' ? 'Dark mode' : 'Light mode'}
-            >
-              {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-            </button>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
             <Link to="/login" className="text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-1.5 transition-colors">
               Sign in
             </Link>

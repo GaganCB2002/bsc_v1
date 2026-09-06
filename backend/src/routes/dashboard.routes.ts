@@ -13,7 +13,7 @@ router.get(
     const user = req.user!
     const today = istToday()
 
-    const [assigned, submitted, approved, rejected, pendingReview, weekly, recent, todayTasks] =
+    const [assigned, submitted, approvedToday, rejected, pendingReview, approvedTotal, weekly, recent, todayTasks] =
       await Promise.all([
         query<{ c: number }>(
           `SELECT COUNT(*)::int AS c FROM checkpoint_assignments
@@ -25,8 +25,8 @@ router.get(
           [user.id, today]
         ),
         query<{ c: number }>(
-          `SELECT COUNT(*)::int AS c FROM checkpoint_submissions WHERE user_id = $1 AND status = 'APPROVED'`,
-          [user.id]
+          `SELECT COUNT(*)::int AS c FROM checkpoint_submissions WHERE user_id = $1 AND submission_date = $2 AND status = 'APPROVED'`,
+          [user.id, today]
         ),
         query<{ c: number }>(
           `SELECT COUNT(*)::int AS c FROM checkpoint_submissions WHERE user_id = $1 AND status = 'REJECTED'`,
@@ -34,6 +34,10 @@ router.get(
         ),
         query<{ c: number }>(
           `SELECT COUNT(*)::int AS c FROM checkpoint_submissions WHERE user_id = $1 AND status = 'SUBMITTED'`,
+          [user.id]
+        ),
+        query<{ c: number }>(
+          `SELECT COUNT(*)::int AS c FROM checkpoint_submissions WHERE user_id = $1 AND status = 'APPROVED'`,
           [user.id]
         ),
         query<{ day: string; submissions: number; approved: number }>(
@@ -91,12 +95,13 @@ router.get(
       kpis: {
         assignedToday: assigned.rows[0].c,
         submittedToday: submitted.rows[0].c,
-        approvedTotal: approved.rows[0].c,
+        approvedToday: approvedToday.rows[0].c,
+        approvedTotal: approvedTotal.rows[0].c,
         rejectedTotal: rejected.rows[0].c,
         pendingReview: pendingReview.rows[0].c,
         completionRate:
           assigned.rows[0].c > 0
-            ? Math.round(((approved.rows[0].c + submitted.rows[0].c) / assigned.rows[0].c) * 100)
+            ? Math.round(((approvedToday.rows[0].c + submitted.rows[0].c) / assigned.rows[0].c) * 100)
             : 0,
       },
       weekly: weekly.rows,

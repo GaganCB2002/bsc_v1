@@ -1,7 +1,10 @@
 import type { Request, Response } from 'express'
+import { randomBytes } from 'node:crypto'
 import { SignJWT, jwtVerify } from 'jose'
 import { config } from '../config.js'
 import { query } from '../db.js'
+
+const isProduction = process.env.NODE_ENV === 'production'
 
 const secret = new TextEncoder().encode(config.sessionSecret)
 
@@ -11,10 +14,14 @@ export async function createSession(
   res: Response
 ): Promise<void> {
   const expiresAt = new Date(Date.now() + config.sessionTtlDays * 24 * 3600 * 1000)
-  const token = await new SignJWT({ uid: userId })
+  // Include a unique nonce so two sessions created in the same second
+  // do not collide on the sessions.token unique index.
+  const nonce = randomBytes(16).toString('hex')
+  const token = await new SignJWT({ uid: userId, jti: nonce })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(Math.floor(expiresAt.getTime() / 1000))
+    .setJti(nonce)
     .sign(secret)
 
   await query(
@@ -24,8 +31,8 @@ export async function createSession(
 
   res.cookie(config.cookieName, token, {
     httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    secure: process.env.NODE_ENV === 'production' || /supabase|rds|render/i.test(config.databaseUrl),
+    sameSite: isProduction ? 'none' : 'lax',
+    secure: isProduction,
     path: '/',
     maxAge: config.sessionTtlDays * 24 * 3600 * 1000,
   })
@@ -42,8 +49,8 @@ export async function destroySession(token: string): Promise<void> {
 export function clearCookie(res: Response): void {
   res.clearCookie(config.cookieName, {
     path: '/',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    sameSite: isProduction ? 'none' : 'lax',
+    secure: isProduction,
   })
 }
 

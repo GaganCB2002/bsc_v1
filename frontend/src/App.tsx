@@ -38,6 +38,7 @@ const SupervisorActivity = lazy(() => import('./pages/supervisor/SupervisorActiv
 const SupervisorProfile = lazy(() => import('./pages/supervisor/SupervisorProfile'))
 const SupervisorReports = lazy(() => import('./pages/supervisor/SupervisorReports'))
 const Chat = lazy(() => import('./pages/Chat'))
+const WhatsAppSection = lazy(() => import('./pages/WhatsAppSection'))
 
 function PageLoader() {
   return (
@@ -92,6 +93,7 @@ export default function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/chat/:conversationId" element={<Chat />} />
+        <Route path="/whatsapp" element={<WhatsAppSection />} />
 
         <Route
           path="/admin"
@@ -114,6 +116,7 @@ export default function App() {
           <Route path="reports" element={<AdminReports />} />
           <Route path="audit-logs" element={<AdminAuditLogs />} />
           <Route path="settings" element={<AdminSettings />} />
+          <Route path="whatsapp" element={<WhatsAppSection />} />
         </Route>
 
         <Route

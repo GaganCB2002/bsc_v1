@@ -4,6 +4,7 @@ import { get, post, apiUrl } from '../../lib/api'
 import { Spinner, ErrorState, PageHeader } from '../../components/States'
 import Modal from '../../components/Modal'
 import StatusBadge from '../../components/StatusBadge'
+import Pagination from '../../components/Pagination'
 import { complianceLabel, accuracyLabel, fmtDateTime, fileSize, isAudio, isImage, isPdf, isCsv } from '../../lib/format'
 
 interface SubmissionRow {
@@ -54,6 +55,7 @@ export default function AdminSubmissions() {
   const [status, setStatus] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
   const [selected, setSelected] = useState<SubmissionRow | null>(null)
   const [evidence, setEvidence] = useState<EvidenceRow[]>([])
   const [reviewComment, setReviewComment] = useState('')
@@ -67,13 +69,18 @@ export default function AdminSubmissions() {
     if (status) q.set('status', status)
     if (search) q.set('search', search)
     q.set('page', String(page))
-    q.set('pageSize', '20')
+    q.set('pageSize', String(pageSize))
     get<{ items: SubmissionRow[]; total: number; page: number; pageSize: number }>(`/api/admin/submissions?${q.toString()}`)
       .then(setData)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false))
   }
-  useEffect(() => { void load() }, [status, search, page])
+
+  useEffect(() => {
+    setPage(1)
+  }, [status, search])
+
+  useEffect(() => { void load() }, [status, search, page, pageSize])
 
   const openDetail = async (s: SubmissionRow) => {
     setSelected(s)
@@ -159,14 +166,15 @@ export default function AdminSubmissions() {
             )}
           </tbody>
         </table>
-      </div>
-
-      <div className="flex items-center justify-between text-xs text-text-muted mt-3">
-        <span>{data?.total || 0} submissions</span>
-        <div className="flex gap-2">
-          <button className="btn btn-outline btn-sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</button>
-          <button className="btn btn-outline btn-sm" disabled={(data?.page || 1) * (data?.pageSize || 20) >= (data?.total || 0)} onClick={() => setPage(page + 1)}>Next</button>
-        </div>
+        <Pagination
+          currentPage={page}
+          totalPages={Math.max(1, Math.ceil((data?.total || 0) / pageSize))}
+          totalItems={data?.total || 0}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={(sz) => { setPageSize(sz); setPage(1); }}
+          itemLabel="submissions"
+        />
       </div>
 
       {/* Detail / review modal */}

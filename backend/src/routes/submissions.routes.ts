@@ -92,19 +92,45 @@ router.post(
       id: string
       checkpoint_id: string
       status: string
-      answer_exists: boolean
+      is_accuracy_required: boolean
+      is_corrective_action_required: boolean
+      is_photo_required: boolean
+      compliance_status: string | null
+      accuracy_status: string | null
+      corrective_action: string | null
     }>(
       `SELECT s.id, s.checkpoint_id, s.status,
-              EXISTS(SELECT 1 FROM submission_answers a WHERE a.submission_id = s.id) AS answer_exists
-       FROM checkpoint_submissions s WHERE s.id = $1 AND s.user_id = $2`,
+              c.is_accuracy_required, c.is_corrective_action_required, c.is_photo_required,
+              a.compliance_status, a.accuracy_status, a.corrective_action
+       FROM checkpoint_submissions s
+       JOIN checkpoints c ON c.id = s.checkpoint_id
+       LEFT JOIN submission_answers a ON a.submission_id = s.id
+       WHERE s.id = $1 AND s.user_id = $2`,
       [req.params.id, user.id]
     )
     const sub = rows[0]
     if (!sub) return fail(res, 404, 'Submission not found')
     if (sub.status === 'SUBMITTED') return fail(res, 409, 'Already submitted for review', 'ALREADY_SUBMITTED')
     if (sub.status === 'APPROVED') return fail(res, 409, 'Already approved', 'ALREADY_APPROVED')
-    if (!sub.answer_exists) {
-      return fail(res, 400, 'Please fill the compliance details before submitting')
+    
+    // Validate required fields based on checkpoint configuration
+    if (!sub.compliance_status) {
+      return fail(res, 400, 'Compliance status is required before submitting')
+    }
+    if (sub.is_accuracy_required && !sub.accuracy_status) {
+      return fail(res, 400, 'Accuracy status is required for this checkpoint')
+    }
+    if (sub.is_corrective_action_required && !sub.corrective_action) {
+      return fail(res, 400, 'Corrective action is required for this checkpoint')
+    }
+    if (sub.is_photo_required) {
+      const { rows: ev } = await query<{ count: number }>(
+        `SELECT COUNT(*)::int AS count FROM evidence_files WHERE submission_id = $1`,
+        [sub.id]
+      )
+      if (!ev[0] || ev[0].count === 0) {
+        return fail(res, 400, 'Evidence file is required for this checkpoint', 'EVIDENCE_REQUIRED')
+      }
     }
 
     await query(

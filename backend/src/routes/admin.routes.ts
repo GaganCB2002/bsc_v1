@@ -8,6 +8,7 @@ import { ah, fail, isValidDate, ok } from '../utils/http.js'
 import { logAudit } from '../utils/audit.js'
 import { notifyUser } from '../utils/notify.js'
 import { reviewSubmission } from '../utils/review.js'
+import { unlockUser } from '../middleware/rateLimit.js'
 
 const router = Router()
 router.use(requireAuth)
@@ -23,7 +24,7 @@ router.get(
   '/dashboard',
   ah(async (_req, res) => {
     const [users, departments, modules, checkpoints, submissions, pendingReview, approvedToday,
-      evidence, trackers, trend, statusDist, deptPerf, recent, latestTracks, audit] = await Promise.all([
+      evidence, trackers, rolesCount, trend, statusDist, deptPerf, recent, latestTracks, audit] = await Promise.all([
       query<{ c: number }>(`SELECT COUNT(*)::int AS c FROM users WHERE status = 'ACTIVE'`),
       query<{ c: number }>(`SELECT COUNT(*)::int AS c FROM departments WHERE status = 'ACTIVE'`),
       query<{ c: number }>(`SELECT COUNT(*)::int AS c FROM modules WHERE status = 'ACTIVE'`),
@@ -37,6 +38,7 @@ router.get(
          WHERE tracked_at >= NOW() - ($1 * INTERVAL '1 minute')`,
         [config.onlineWindowMinutes]
       ),
+      query<{ c: number }>(`SELECT COUNT(*)::int AS c FROM roles`),
       query<{ day: string; total: number; approved: number }>(
         `SELECT to_char(d::date, 'YYYY-MM-DD') AS day,
                 COUNT(s.id)::int AS total,
@@ -104,6 +106,7 @@ router.get(
         approvedToday: approvedToday.rows[0].c,
         evidence: evidence.rows[0].c,
         onlineTrackers: trackers.rows[0].c,
+        roles: rolesCount.rows[0].c,
       },
       trend: trend.rows,
       statusDistribution: statusDist.rows,
@@ -140,6 +143,7 @@ router.get(
     }
     const { rows } = await query(
       `SELECT u.id, u.employee_code, u.full_name, u.email, u.phone, u.username, u.status,
+              u.account_type, u.customer_code, u.banned_until, u.restriction_reason, u.restricted_at,
               u.profile_image, u.last_login_at, u.created_at, u.department_id,
               r.name AS role_name, d.name AS department_name
        FROM users u
@@ -163,6 +167,8 @@ const createUserSchema = z.object({
   roleId: z.string().uuid(),
   departmentId: z.string().uuid().nullable().optional(),
   reportingManagerId: z.string().uuid().nullable().optional(),
+  accountType: z.enum(['BSC_USER', 'CUSTOMER']).optional(),
+  customerCode: z.string().max(50).nullable().optional(),
 })
 
 router.post(
@@ -172,15 +178,29 @@ router.post(
     const parsed = createUserSchema.safeParse(req.body)
     if (!parsed.success) return fail(res, 400, parsed.error.issues[0]?.message || 'Invalid user data')
     const d = parsed.data
+    const acctType = d.accountType || 'BSC_USER'
+    const custCode = d.customerCode || (acctType === 'CUSTOMER' ? d.employeeCode : null)
     try {
       const { rows } = await query<{ id: string }>(
-        `INSERT INTO users (employee_code, full_name, email, phone, username, password_hash, role_id, department_id, reporting_manager_id, created_by)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
+        `INSERT INTO users (employee_code, full_name, email, phone, username, password_hash, role_id, department_id, reporting_manager_id, created_by, account_type, customer_code)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id`,
         [d.employeeCode, d.fullName, d.email, d.phone || null, d.username, await bcrypt.hash(d.password, 10),
-          d.roleId, d.departmentId || null, d.reportingManagerId || null, admin.id]
+          d.roleId, d.departmentId || null, d.reportingManagerId || null, admin.id, acctType, custCode]
       )
-      await logAudit({ userId: admin.id, action: 'USER_CREATED', entityType: 'user', entityId: rows[0].id, newValues: { username: d.username, fullName: d.fullName }, req })
-      ok(res, { id: rows[0].id })
+      const newUserId = rows[0].id
+
+      // If creating a customer account, ensure customer table profile exists
+      if (acctType === 'CUSTOMER') {
+        await query(
+          `INSERT INTO customers (customer_code, name, email, phone, whatsapp_number, user_id, created_by)
+           VALUES ($1, $2, $3, $4, $4, $5, $6)
+           ON CONFLICT (customer_code) DO UPDATE SET user_id = EXCLUDED.user_id, updated_at = NOW()`,
+          [custCode || d.employeeCode, d.fullName, d.email, d.phone || null, newUserId, admin.id]
+        )
+      }
+
+      await logAudit({ userId: admin.id, action: 'USER_CREATED', entityType: 'user', entityId: newUserId, newValues: { username: d.username, fullName: d.fullName, accountType: acctType }, req })
+      ok(res, { id: newUserId })
     } catch (err) {
       const msg = (err as Error).message
       if (msg.includes('duplicate key')) {
@@ -270,23 +290,205 @@ router.post(
   '/users/:id/reset-password',
   ah(async (req, res) => {
     const admin = req.user!
-    const parsed = z.object({ newPassword: z.string().min(8).max(100).regex(/^(?=.*[A-Za-z])(?=.*\d)/, 'Password must contain both letters and numbers') }).safeParse(req.body)
-    if (!parsed.success) return fail(res, 400, 'New password must be at least 8 characters')
-    const { rows } = await query<{ id: string }>('SELECT id FROM users WHERE id = $1', [req.params.id])
+    const schema = z.object({
+      newPassword: z
+        .string()
+        .min(8, 'Password must be at least 8 characters')
+        .max(100)
+        .regex(/^(?=.*[A-Za-z])(?=.*\d)/, 'Password must contain both letters and numbers'),
+      mustChangePassword: z.boolean().optional(),
+    })
+    const parsed = schema.safeParse(req.body)
+    if (!parsed.success) {
+      return fail(res, 400, parsed.error.issues[0]?.message || 'Invalid password')
+    }
+    const { rows } = await query<{ id: string; full_name: string }>('SELECT id, full_name FROM users WHERE id = $1', [req.params.id])
     if (rows.length === 0) return fail(res, 404, 'User not found')
+
+    const mustChange = parsed.data.mustChangePassword ?? true
+    const hash = await bcrypt.hash(parsed.data.newPassword, 10)
+
     await query(
-      `UPDATE users SET password_hash = $1, must_change_password = TRUE, updated_at = NOW() WHERE id = $2`,
-      [await bcrypt.hash(parsed.data.newPassword, 10), req.params.id]
+      `UPDATE users SET password_hash = $1, must_change_password = $2, updated_at = NOW() WHERE id = $3`,
+      [hash, mustChange, req.params.id]
     )
     await query('DELETE FROM sessions WHERE user_id = $1', [req.params.id])
     await notifyUser(req.params.id, {
       title: 'Password reset by administrator',
-      message: 'Your password was reset by an administrator. Please log in and change your password.',
+      message: 'Your password was reset by an administrator. Please log in with your new credentials.',
       type: 'warning',
       linkUrl: '/profile',
     })
-    await logAudit({ userId: admin.id, action: 'PASSWORD_RESET', entityType: 'user', entityId: req.params.id, req })
-    ok(res, { updated: true })
+    await logAudit({
+      userId: admin.id,
+      action: 'PASSWORD_RESET',
+      entityType: 'user',
+      entityId: req.params.id,
+      newValues: { targetUser: rows[0].full_name, mustChangePassword: mustChange },
+      req,
+    })
+    ok(res, { updated: true, message: `Password for ${rows[0].full_name} updated successfully` })
+  })
+)
+
+router.post(
+  '/users/:id/restrict',
+  ah(async (req, res) => {
+    const admin = req.user!
+    if (req.params.id === admin.id) return fail(res, 400, 'You cannot restrict your own account')
+
+    const schema = z.object({
+      timeframe: z.enum(['24_HOURS', '48_HOURS', '7_DAYS', '30_DAYS', 'PERMANENT']),
+      reason: z.string().max(500).optional(),
+    })
+    const parsed = schema.safeParse(req.body)
+    if (!parsed.success) return fail(res, 400, parsed.error.issues[0]?.message || 'Invalid restriction data')
+
+    const { timeframe, reason } = parsed.data
+    const { rows } = await query<{ id: string; full_name: string; username: string }>('SELECT id, full_name, username FROM users WHERE id = $1', [req.params.id])
+    if (rows.length === 0) return fail(res, 404, 'User not found')
+
+    let intervalSql = "INTERVAL '24 hours'"
+    if (timeframe === '48_HOURS') intervalSql = "INTERVAL '48 hours'"
+    else if (timeframe === '7_DAYS') intervalSql = "INTERVAL '7 days'"
+    else if (timeframe === '30_DAYS') intervalSql = "INTERVAL '30 days'"
+    else if (timeframe === 'PERMANENT') intervalSql = "INTERVAL '100 years'"
+
+    const updateRes = await query<{ banned_until: string }>(
+      `UPDATE users SET
+         status = 'SUSPENDED',
+         banned_until = NOW() + ${intervalSql},
+         restriction_reason = $1,
+         restricted_at = NOW(),
+         updated_at = NOW()
+       WHERE id = $2 RETURNING banned_until`,
+      [reason || 'Administrative account restriction', req.params.id]
+    )
+
+    // Clear active sessions
+    await query('DELETE FROM sessions WHERE user_id = $1', [req.params.id])
+
+    await notifyUser(req.params.id, {
+      title: 'Account Restricted',
+      message: `Your account has been restricted until ${new Date(updateRes.rows[0].banned_until).toLocaleString()}. Reason: ${reason || 'Administrative policy'}`,
+      type: 'danger',
+    })
+
+    await logAudit({
+      userId: admin.id,
+      action: 'USER_RESTRICTED',
+      entityType: 'user',
+      entityId: req.params.id,
+      newValues: { timeframe, reason, bannedUntil: updateRes.rows[0].banned_until },
+      req,
+    })
+
+    ok(res, {
+      success: true,
+      bannedUntil: updateRes.rows[0].banned_until,
+      message: `Account for ${rows[0].full_name} restricted successfully`,
+    })
+  })
+)
+
+router.post(
+  '/users/:id/unlock',
+  ah(async (req, res) => {
+    const admin = req.user!
+    const { rows } = await query<{ id: string; full_name: string; username: string }>('SELECT id, full_name, username FROM users WHERE id = $1', [req.params.id])
+    if (rows.length === 0) return fail(res, 404, 'User not found')
+
+    await query(
+      `UPDATE users SET
+         status = 'ACTIVE',
+         banned_until = NULL,
+         restriction_reason = NULL,
+         restricted_at = NULL,
+         updated_at = NOW()
+       WHERE id = $1`,
+      [req.params.id]
+    )
+
+    // Clear any rate-limit lockout
+    unlockUser(rows[0].username)
+
+    await notifyUser(req.params.id, {
+      title: 'Account Restored',
+      message: 'Your account access has been restored to active status.',
+      type: 'info',
+    })
+
+    await logAudit({
+      userId: admin.id,
+      action: 'USER_UNLOCKED',
+      entityType: 'user',
+      entityId: req.params.id,
+      req,
+    })
+
+    ok(res, {
+      success: true,
+      message: `User ${rows[0].full_name} unlocked and restored to Active status`,
+    })
+  })
+)
+
+// User Analytics for Dashboards
+router.get(
+  '/user-analytics',
+  ah(async (_req, res) => {
+    const [totals, rolesBreakdown, deptBreakdown, trendRows, recentRegistrations] = await Promise.all([
+      query(`
+        SELECT
+          COUNT(*)::int AS total_users,
+          COUNT(*) FILTER (WHERE COALESCE(account_type, 'BSC_USER') = 'BSC_USER')::int AS bsc_users,
+          COUNT(*) FILTER (WHERE account_type = 'CUSTOMER')::int AS customer_accounts,
+          (SELECT COUNT(*)::int FROM customers) AS total_customers_directory,
+          COUNT(*) FILTER (WHERE status = 'ACTIVE')::int AS active_count,
+          COUNT(*) FILTER (WHERE status = 'INACTIVE')::int AS inactive_count,
+          COUNT(*) FILTER (WHERE status = 'SUSPENDED')::int AS suspended_count,
+          COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '30 days')::int AS new_this_month
+        FROM users
+      `),
+      query(`
+        SELECT r.name AS role_name, COUNT(u.id)::int AS count
+        FROM roles r
+        LEFT JOIN users u ON u.role_id = r.id
+        GROUP BY r.name ORDER BY count DESC
+      `),
+      query(`
+        SELECT COALESCE(d.name, 'Unassigned') AS department_name, COUNT(u.id)::int AS count
+        FROM users u
+        LEFT JOIN departments d ON d.id = u.department_id
+        GROUP BY d.name ORDER BY count DESC
+      `),
+      query(`
+        SELECT
+          TO_CHAR(d, 'Mon DD') AS label,
+          COALESCE(COUNT(u.id), 0)::int AS users_count,
+          COALESCE(COUNT(u.id) FILTER (WHERE u.account_type = 'CUSTOMER'), 0)::int AS customers_count
+        FROM generate_series(NOW() - INTERVAL '14 days', NOW(), INTERVAL '1 day') d
+        LEFT JOIN users u ON DATE(u.created_at) = DATE(d)
+        GROUP BY d
+        ORDER BY d ASC
+      `),
+      query(`
+        SELECT u.id, u.employee_code, u.full_name, u.email, u.status, u.account_type,
+               r.name AS role_name, d.name AS department_name, u.created_at
+        FROM users u
+        JOIN roles r ON r.id = u.role_id
+        LEFT JOIN departments d ON d.id = u.department_id
+        ORDER BY u.created_at DESC LIMIT 10
+      `),
+    ])
+
+    ok(res, {
+      totals: totals.rows[0],
+      rolesBreakdown: rolesBreakdown.rows,
+      departmentBreakdown: deptBreakdown.rows,
+      trend: trendRows.rows,
+      recent: recentRegistrations.rows,
+    })
   })
 )
 
@@ -300,7 +502,24 @@ router.get(
       `SELECT r.id, r.name, r.description, r.created_at,
               (SELECT COUNT(*)::int FROM users u WHERE u.role_id = r.id) AS user_count,
               (SELECT COUNT(*)::int FROM role_permissions rp WHERE rp.role_id = r.id) AS permission_count,
-              COALESCE((SELECT json_agg(rp.permission_id) FROM role_permissions rp WHERE rp.role_id = r.id), '[]'::json) AS permission_ids
+              COALESCE((SELECT json_agg(rp.permission_id) FROM role_permissions rp WHERE rp.role_id = r.id), '[]'::json) AS permission_ids,
+              COALESCE((
+                SELECT json_agg(json_build_object(
+                  'id', u.id,
+                  'full_name', u.full_name,
+                  'username', u.username,
+                  'employee_code', u.employee_code,
+                  'email', u.email,
+                  'phone', u.phone,
+                  'status', u.status,
+                  'department_name', d.name,
+                  'last_login_at', u.last_login_at,
+                  'created_at', u.created_at
+                ) ORDER BY u.full_name)
+                FROM users u
+                LEFT JOIN departments d ON d.id = u.department_id
+                WHERE u.role_id = r.id
+              ), '[]'::json) AS users
        FROM roles r ORDER BY r.name`
     )
     ok(res, { roles: rows })
@@ -323,15 +542,57 @@ router.get(
   })
 )
 
+const roleCreateSchema = z.object({
+  name: z.string().min(2).max(50),
+  description: z.string().max(255).nullable().optional(),
+  permissionIds: z.array(z.string().uuid()).optional(),
+})
+
+router.post(
+  '/roles',
+  ah(async (req, res) => {
+    const admin = req.user!
+    const parsed = roleCreateSchema.safeParse(req.body)
+    if (!parsed.success) return fail(res, 400, parsed.error.issues[0]?.message || 'Invalid role data')
+    const roleName = parsed.data.name.trim().toUpperCase().replace(/\s+/g, '_')
+    try {
+      const { rows } = await query<{ id: string }>(
+        `INSERT INTO roles (name, description) VALUES ($1, $2) RETURNING id`,
+        [roleName, parsed.data.description || null]
+      )
+      const roleId = rows[0].id
+      if (parsed.data.permissionIds?.length) {
+        for (const pid of parsed.data.permissionIds) {
+          await query(
+            'INSERT INTO role_permissions (role_id, permission_id) VALUES ($1,$2) ON CONFLICT DO NOTHING',
+            [roleId, pid]
+          )
+        }
+      }
+      await logAudit({ userId: admin.id, action: 'ROLE_CREATED', entityType: 'role', entityId: roleId, newValues: parsed.data, req })
+      ok(res, { id: roleId })
+    } catch (err) {
+      if ((err as Error).message.includes('duplicate key') || (err as Error).message.includes('unique')) {
+        return fail(res, 409, 'A role with this name already exists')
+      }
+      throw err
+    }
+  })
+)
+
 router.put(
   '/roles/:id',
   ah(async (req, res) => {
     const admin = req.user!
-    const parsed = z.object({ permissionIds: z.array(z.string().uuid()) }).safeParse(req.body)
+    const parsed = z.object({ permissionIds: z.array(z.string().uuid()), description: z.string().max(255).optional() }).safeParse(req.body)
     if (!parsed.success) return fail(res, 400, 'permissionIds must be an array of permission IDs')
     const { rows } = await query<{ id: string; name: string }>('SELECT id, name FROM roles WHERE id = $1', [req.params.id])
     if (rows.length === 0) return fail(res, 404, 'Role not found')
     if (rows[0].name === 'ADMIN') return fail(res, 400, 'The ADMIN role always has all permissions')
+
+    if (parsed.data.description !== undefined) {
+      await query('UPDATE roles SET description = $1, updated_at = NOW() WHERE id = $2', [parsed.data.description, req.params.id])
+    }
 
     await query('DELETE FROM role_permissions WHERE role_id = $1', [req.params.id])
     for (const pid of parsed.data.permissionIds) {
@@ -342,6 +603,29 @@ router.put(
     }
     await logAudit({ userId: admin.id, action: 'ROLE_UPDATED', entityType: 'role', entityId: req.params.id, newValues: { permissions: parsed.data.permissionIds.length }, req })
     ok(res, { updated: true })
+  })
+)
+
+router.delete(
+  '/roles/:id',
+  ah(async (req, res) => {
+    const admin = req.user!
+    const { rows } = await query<{ name: string; user_count: number }>(
+      `SELECT r.name, (SELECT COUNT(*)::int FROM users WHERE role_id = r.id) AS user_count
+       FROM roles r WHERE r.id = $1`,
+      [req.params.id]
+    )
+    if (rows.length === 0) return fail(res, 404, 'Role not found')
+    if (['ADMIN', 'FIELD_EXECUTIVE', 'SUPERVISOR', 'MANAGER', 'CLIENT'].includes(rows[0].name)) {
+      return fail(res, 400, 'System default roles cannot be deleted')
+    }
+    if (rows[0].user_count > 0) {
+      return fail(res, 409, `Cannot delete role assigned to ${rows[0].user_count} user(s). Reassign them first.`)
+    }
+    await query('DELETE FROM role_permissions WHERE role_id = $1', [req.params.id])
+    await query('DELETE FROM roles WHERE id = $1', [req.params.id])
+    await logAudit({ userId: admin.id, action: 'ROLE_DELETED', entityType: 'role', entityId: req.params.id, req })
+    ok(res, { deleted: true })
   })
 )
 
@@ -1143,6 +1427,93 @@ router.delete(
     await query('DELETE FROM locations WHERE id = $1', [req.params.id])
     await logAudit({ userId: admin.id, action: 'LOCATION_DELETED', entityType: 'location', entityId: req.params.id, req })
     ok(res, { deleted: true })
+  })
+)
+
+// ============================================================
+// ADMITTANCE CODES — assign location + code to each user
+// ============================================================
+router.get(
+  '/admittance-codes',
+  ah(async (_req, res) => {
+    const { rows } = await query(
+      `SELECT ac.id, ac.user_id, ac.location_id, ac.admittance_code, ac.is_active, ac.created_at,
+              u.full_name AS user_name, u.employee_code,
+              l.name AS location_name, l.code AS location_code, l.address AS location_address
+       FROM admittance_codes ac
+       JOIN users u ON u.id = ac.user_id
+       LEFT JOIN locations l ON l.id = ac.location_id
+       ORDER BY u.full_name`
+    )
+    ok(res, { codes: rows })
+  })
+)
+
+router.post(
+  '/admittance-codes',
+  ah(async (req, res) => {
+    const admin = req.user!
+    const parsed = z.object({
+      userId: z.string().uuid(),
+      locationId: z.string().uuid(),
+    }).safeParse(req.body)
+    if (!parsed.success) return fail(res, 400, 'userId and locationId are required')
+
+    // Generate a 6-character alphanumeric admittance code
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase()
+
+    try {
+      const { rows } = await query<{ id: string }>(
+        `INSERT INTO admittance_codes (user_id, location_id, admittance_code, created_by)
+         VALUES ($1, $2, $3, $4) RETURNING id`,
+        [parsed.data.userId, parsed.data.locationId, code, admin.id]
+      )
+      await logAudit({ userId: admin.id, action: 'ADMITTANCE_CODE_CREATED', entityType: 'admittance_code', entityId: rows[0].id, newValues: { userId: parsed.data.userId, locationId: parsed.data.locationId }, req })
+      ok(res, { id: rows[0].id, admittanceCode: code })
+    } catch (err) {
+      if ((err as Error).message.includes('duplicate key')) return fail(res, 409, 'User already has an admittance code for this location')
+      throw err
+    }
+  })
+)
+
+router.delete(
+  '/admittance-codes/:id',
+  ah(async (req, res) => {
+    const admin = req.user!
+    await query('DELETE FROM admittance_codes WHERE id = $1', [req.params.id])
+    await logAudit({ userId: admin.id, action: 'ADMITTANCE_CODE_DELETED', entityType: 'admittance_code', entityId: req.params.id, req })
+    ok(res, { deleted: true })
+  })
+)
+
+router.patch(
+  '/admittance-codes/:id/toggle',
+  ah(async (req, res) => {
+    const admin = req.user!
+    const { rows } = await query<{ is_active: boolean }>('SELECT is_active FROM admittance_codes WHERE id = $1', [req.params.id])
+    if (rows.length === 0) return fail(res, 404, 'Code not found')
+    await query('UPDATE admittance_codes SET is_active = $1, updated_at = NOW() WHERE id = $2', [!rows[0].is_active, req.params.id])
+    ok(res, { isActive: !rows[0].is_active })
+  })
+)
+
+// ============================================================
+// GET my admittance code (for any user)
+// ============================================================
+router.get(
+  '/my-admittance-code',
+  requirePermission('tracking:update'),
+  ah(async (req, res) => {
+    const { rows } = await query(
+      `SELECT ac.admittance_code, ac.is_active, l.name AS location_name, l.code AS location_code, l.address AS location_address
+       FROM admittance_codes ac
+       LEFT JOIN locations l ON l.id = ac.location_id
+       WHERE ac.user_id = $1 AND ac.is_active = TRUE
+       ORDER BY ac.created_at DESC LIMIT 1`,
+      [req.user!.id]
+    )
+    ok(res, { code: rows[0] || null })
   })
 )
 
