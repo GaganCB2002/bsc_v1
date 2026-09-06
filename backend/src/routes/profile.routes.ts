@@ -1,6 +1,12 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
+import multer from 'multer'
+import path from 'node:path'
+import fs from 'node:fs'
+import { randomUUID } from 'node:crypto'
+import { createClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { query } from '../db.js'
 import { requireAuth } from '../middleware/auth.js'
 import { ah, fail, ok } from '../utils/http.js'
@@ -11,11 +17,136 @@ import { config } from '../config.js'
 const router = Router()
 router.use(requireAuth)
 
+// ── Profile Photo Upload ──────────────────────────────────────
+const PROFILE_PHOTO_MIMES: Record<string, string> = {
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/webp': '.webp',
+}
+
+const useSupabase = config.fileStorageType === 'supabase'
+let supabaseClient: SupabaseClient | null = null
+if (useSupabase && config.supabaseUrl && config.supabaseServiceKey) {
+  supabaseClient = createClient(config.supabaseUrl, config.supabaseServiceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+}
+
+const profilePhotoStorage = useSupabase
+  ? multer.memoryStorage()
+  : multer.diskStorage({
+      destination: (_req, _file, cb) => {
+        const dir = path.join(config.uploadDir, 'profiles')
+        fs.mkdirSync(dir, { recursive: true })
+        cb(null, dir)
+      },
+      filename: (_req, file, cb) => {
+        const ext = PROFILE_PHOTO_MIMES[file.mimetype] || '.jpg'
+        cb(null, `${randomUUID()}${ext}`)
+      },
+    })
+
+const profileUpload = multer({
+  storage: profilePhotoStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+  fileFilter: (_req, file, cb) => {
+    if (Object.keys(PROFILE_PHOTO_MIMES).includes(file.mimetype)) cb(null, true)
+    else cb(new Error('Only JPG, PNG, and WEBP images are allowed'))
+  },
+})
+
 const updateSchema = z.object({
   fullName: z.string().min(2).max(150).optional(),
   email: z.string().email().max(150).optional(),
   phone: z.string().max(30).nullable().optional(),
 })
+
+// POST /api/profile/photo — upload profile photo
+router.post(
+  '/photo',
+  (req, res, next) => {
+    profileUpload.single('photo')(req, res, (err) => {
+      if (err) {
+        if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+          return fail(res, 400, 'Photo too large. Maximum size is 5 MB')
+        }
+        return fail(res, 400, (err as Error).message || 'Upload failed')
+      }
+      next()
+    })
+  },
+  ah(async (req, res) => {
+    const user = req.user!
+    const file = req.file
+    if (!file) return fail(res, 400, 'No photo provided')
+
+    // Delete old profile photo if exists
+    const { rows: existing } = await query<{ profile_image: string | null }>(
+      'SELECT profile_image FROM users WHERE id = $1',
+      [user.id]
+    )
+    const oldImage = existing[0]?.profile_image
+
+    let publicUrl: string | null = null
+    let storagePath = ''
+
+    if (useSupabase && supabaseClient) {
+      const ext = PROFILE_PHOTO_MIMES[file.mimetype] || '.jpg'
+      const storedName = `${randomUUID()}${ext}`
+      storagePath = `profiles/${user.id}/${storedName}`
+      const { error } = await supabaseClient.storage
+        .from(config.supabaseBucket)
+        .upload(storagePath, file.buffer, {
+          contentType: file.mimetype,
+          upsert: false,
+        })
+      if (error) return fail(res, 500, `Storage upload failed: ${error.message}`)
+      const { data: pub } = supabaseClient.storage.from(config.supabaseBucket).getPublicUrl(storagePath)
+      publicUrl = pub.publicUrl
+    } else {
+      storagePath = file.path
+      publicUrl = `/uploads/profiles/${file.filename}`
+    }
+
+    await query(
+      'UPDATE users SET profile_image = $1, updated_at = NOW() WHERE id = $2',
+      [publicUrl, user.id]
+    )
+
+    // Cleanup old local file
+    if (oldImage && !oldImage.startsWith('http') && oldImage.startsWith('/uploads/')) {
+      const oldPath = path.join(config.uploadDir, oldImage.replace('/uploads/', ''))
+      fs.unlink(oldPath, () => undefined)
+    }
+
+    await logAudit({ userId: user.id, action: 'PROFILE_PHOTO_UPDATED', entityType: 'user', entityId: user.id, req })
+    ok(res, { profileImage: publicUrl })
+  })
+)
+
+// DELETE /api/profile/photo — remove profile photo
+router.delete(
+  '/photo',
+  ah(async (req, res) => {
+    const user = req.user!
+    const { rows } = await query<{ profile_image: string | null }>(
+      'SELECT profile_image FROM users WHERE id = $1',
+      [user.id]
+    )
+    const oldImage = rows[0]?.profile_image
+    if (!oldImage) return fail(res, 404, 'No profile photo to remove')
+
+    // Delete file
+    if (oldImage.startsWith('/uploads/')) {
+      const oldPath = path.join(config.uploadDir, oldImage.replace('/uploads/', ''))
+      fs.unlink(oldPath, () => undefined)
+    }
+
+    await query('UPDATE users SET profile_image = NULL, updated_at = NOW() WHERE id = $1', [user.id])
+    await logAudit({ userId: user.id, action: 'PROFILE_PHOTO_REMOVED', entityType: 'user', entityId: user.id, req })
+    ok(res, { removed: true })
+  })
+)
 
 // GET /api/profile
 router.get(

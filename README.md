@@ -8,7 +8,7 @@ Track Every Process. Verify Every Location. Prove Every Action.
 
 [![Frontend](https://img.shields.io/badge/Frontend-Live-000000?style=flat-square&logo=vercel)](https://bsc-v1-seven.vercel.app)
 [![Backend](https://img.shields.io/badge/Backend-Live-46E3B7?style=flat-square&logo=render)](https://bsc-v1.onrender.com)
-[![Version](https://img.shields.io/badge/Version-1.1.0-brightgreen?style=flat-square)](#)
+[![Version](https://img.shields.io/badge/Version-2.0.0-brightgreen?style=flat-square)](#)
 [![License](https://img.shields.io/badge/License-Private-blue?style=flat-square)](#)
 
 </div>
@@ -21,19 +21,24 @@ Track Every Process. Verify Every Location. Prove Every Action.
 2. [What Problem It Solves](#what-problem-it-solves)
 3. [Key Features](#key-features)
 4. [Tech Stack](#tech-stack)
-5. [Project File Structure](#project-file-structure)
-6. [System Architecture](#system-architecture)
+5. [System Architecture](#system-architecture)
+6. [Complete System Architecture Diagram](#complete-system-architecture-diagram)
 7. [Data Flow Diagrams](#data-flow-diagrams)
-8. [Authentication Flow](#authentication-flow)
-9. [Evidence Upload Flow](#evidence-upload-flow)
-10. [GPS Tracking Flow](#gps-tracking-flow)
-11. [Checkpoint Submission Flow](#checkpoint-submission-flow)
-12. [Consent Gate Flow](#consent-gate-flow)
-13. [Database Schema](#database-schema)
-14. [Roles & Permissions](#roles--permissions)
-15. [API Endpoints](#api-endpoints)
-16. [Deployment](#deployment)
-17. [Local Development](#local-development)
+8. [Project File Structure](#project-file-structure)
+9. [Authentication Flow](#authentication-flow)
+10. [Profile Photo Upload Flow](#profile-photo-upload-flow)
+11. [Live Google Maps Tracking Flow](#live-google-maps-tracking-flow)
+12. [Map Layers Flow](#map-layers-flow)
+13. [Admin Navigate-to-Location Flow](#admin-navigate-to-location-flow)
+14. [Evidence Upload Flow](#evidence-upload-flow)
+15. [GPS Tracking Flow](#gps-tracking-flow)
+16. [WebSocket Real-Time Flow](#websocket-real-time-flow)
+17. [Database Schema](#database-schema)
+18. [Roles & Permissions](#roles--permissions)
+19. [API Endpoints](#api-endpoints)
+20. [Environment Variables](#environment-variables)
+21. [Deployment](#deployment)
+22. [Local Development](#local-development)
 
 ---
 
@@ -53,13 +58,16 @@ This is not a generic project management tool. It is a **compliance enforcement 
 - No real-time visibility into where team members are
 - Different employees follow different processes with no standardization
 - When regulators ask for proof, organizations cannot produce it
-- Paper submissions take days or weeks to reach decision makers
+- No way to calculate distance between admin and field employees
 
 **With this system:**
 - Every task submission requires evidence (photos, documents, audio)
-- GPS locations are tracked and stored for every submission
-- Management sees all team locations on a live map in real-time
-- Checkpoints define exactly what needs to be done at each step
+- GPS locations are tracked and stored for every submission with live Google Maps
+- Management sees all team locations on a live Google Map with profile photos
+- Map layers (Street View, Satellite, Terrain) for detailed location analysis
+- One-click navigation to any user's location via Google Maps
+- Distance calculation between admin and each tracked user
+- Profile photos visible on map markers and across the platform
 - Every action from login to submission is logged with timestamps
 - Time-based auto-approval prevents bottlenecks
 
@@ -69,8 +77,14 @@ This is not a generic project management tool. It is a **compliance enforcement 
 
 | Feature | What It Does |
 |---------|-------------|
-| **Role-Based Access Control** | 6 roles (Admin, Manager, Supervisor, Auditor, User, Viewer) with 40+ granular permissions |
-| **GPS Location Tracking** | Automatic 30-minute location sync with live map for supervisors |
+| **Profile Photo Upload** | Users upload profile photos (JPG/PNG/WEBP, 5MB max) visible in their account and on the live map |
+| **Live Google Maps** | Real-time tracking on Google Maps with Street View, Satellite, Terrain, and Hybrid layers |
+| **Profile Photos on Map** | Each user's profile photo appears as their map marker for instant identification |
+| **One-Click Navigation** | Admin clicks on any user to auto-redirect to Google Maps with distance and driving directions |
+| **Distance Calculation** | Haversine formula calculates real-time distance between admin and each tracked user |
+| **Map Layer Controls** | Switch between Street View, Satellite, Terrain, and Hybrid map layers |
+| **Role-Based Access Control** | 6 roles with 40+ granular permissions |
+| **GPS Location Tracking** | Automatic continuous location sync via WebSocket |
 | **Evidence Upload** | Upload images, PDFs, CSVs, and audio files (25MB limit) |
 | **Compliance Checkpoints** | Modules with checkpoints that define required tasks and evidence |
 | **Submission Approval** | Review, approve, or reject submissions with comments |
@@ -89,12 +103,394 @@ This is not a generic project management tool. It is a **compliance enforcement 
 | Frontend | React 19, Vite, TypeScript | Single-page application |
 | Styling | Tailwind CSS 4 | Responsive design |
 | Charts | Recharts | Dashboard analytics |
-| Maps | Leaflet | GPS tracking visualization |
+| Maps | Google Maps (@vis.gl/react-google-maps) | Live tracking with layers |
 | Backend | Node.js, Express 5 | REST API server |
+| Realtime | Socket.IO | WebSocket for live tracking + chat |
 | Authentication | JWT, bcrypt | Secure sessions |
 | Database | PostgreSQL (Supabase) | Relational data storage |
-| File Storage | Supabase Storage | Evidence file uploads |
+| File Storage | Supabase Storage | Evidence + profile photo uploads |
 | Deployment | Vercel (frontend), Render (backend) | Cloud hosting |
+
+---
+
+## Complete System Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          USER'S BROWSER / DEVICE                             │
+│                                                                               │
+│   ┌──────────────────────────────────────────────────────────────────────┐   │
+│   │                       REACT 19 (Vite)                                │   │
+│   │                                                                      │   │
+│   │   ┌──────────────┐  ┌──────────────┐  ┌────────────────────────┐   │   │
+│   │   │ ConsentGate  │→ │ AuthProvider │→ │ TrackingProvider       │   │   │
+│   │   │ (first visit)│  │ (JWT cookie) │  │ (GPS watchPosition)   │   │   │
+│   │   └──────────────┘  └──────────────┘  └────────────────────────┘   │   │
+│   │                                                                      │   │
+│   │   ┌──────────────────────────────────────────────────────────────┐  │   │
+│   │   │                    API Client (fetch + cookies)               │  │   │
+│   │   │   POST /api/profile/photo  (profile upload)                 │  │   │
+│   │   │   POST /api/tracking       (GPS sync)                       │  │   │
+│   │   │   GET  /api/tracking/latest (live map data)                 │  │   │
+│   │   └──────────────────────────────────────────────────────────────┘  │   │
+│   │                                                                      │   │
+│   │   ┌──────────────────────────────────────────────────────────────┐  │   │
+│   │   │              LiveMap Component (Google Maps)                  │  │   │
+│   │   │   ┌─────────────┐  ┌──────────────┐  ┌─────────────────┐   │  │   │
+│   │   │   │ Map Layers  │  │ User Markers │  │ InfoWindow      │   │  │   │
+│   │   │   │ Street View │  │ (profile     │  │ (profile photo, │   │  │   │
+│   │   │   │ Satellite   │  │  photos +    │  │  role, distance,│   │  │   │
+│   │   │   │ Terrain     │  │  online      │  │  navigate btn)  │   │  │   │
+│   │   │   │ Hybrid      │  │  status)     │  │                 │   │  │   │
+│   │   │   └─────────────┘  └──────────────┘  └─────────────────┘   │  │   │
+│   │   └──────────────────────────────────────────────────────────────┘  │   │
+│   │                                                                      │   │
+│   │   ┌──────────────────────────────────────────────────────────────┐  │   │
+│   │   │              Socket.IO Client                                 │  │   │
+│   │   │   tracking:update  (real-time GPS broadcasts)               │  │   │
+│   │   │   chat:message     (real-time messaging)                    │  │   │
+│   │   │   notification:new (real-time alerts)                       │  │   │
+│   │   └──────────────────────────────────────────────────────────────┘  │   │
+│   └──────────────────────────────────────────────────────────────────────┘   │
+│                                      │                                        │
+│                          HTTPS + WebSocket                                     │
+│                                      │                                        │
+└──────────────────────────────────────┼────────────────────────────────────────┘
+                                       │
+                     ┌─────────────────▼─────────────────┐
+                     │           VERCEL (CDN)             │
+                     │                                     │
+                     │   Static files served globally      │
+                     │   API proxy: /api/* → Render        │
+                     └─────────────────┬─────────────────┘
+                                       │
+                     ┌─────────────────▼─────────────────┐
+                     │          RENDER (Backend)           │
+                     │                                     │
+                     │   Express REST API (Node.js)        │
+                     │   Socket.IO Server                  │
+                     │   JWT Validation                    │
+                     │   Multer File Upload                │
+                     │   Cron Jobs (auto-approve)          │
+                     │                                     │
+                     │   Routes:                           │
+                     │   ├── /api/auth/*                   │
+                     │   ├── /api/profile/*  (photo upload)│
+                     │   ├── /api/tracking/*               │
+                     │   ├── /api/admin/*                  │
+                     │   ├── /api/evidence/*               │
+                     │   └── /api/chat/*                   │
+                     └──┬──────────┬──────────┬──────────┘
+                        │          │          │
+             ┌──────────▼┐   ┌────▼────┐   ▼──────────┐
+             │ SUPABASE   │   │  JWT    │   SUPABASE   │
+             │ PostgreSQL │   │ Tokens  │   Storage    │
+             │            │   │         │              │
+             │ Tables:    │   └─────────┘   Buckets:   │
+             │ users      │                 evidence   │
+             │ location_  │                 profiles   │
+             │   tracks   │                            │
+             │ modules    │                            │
+             │ evidence   │                            │
+             │ sessions   │                            │
+             └────────────┘                            │
+                                                       │
+                     ┌─────────────────────────────────┘
+                     │
+             ┌───────▼───────────┐
+             │   GOOGLE MAPS     │
+             │   (via API key)   │
+             │                    │
+             │   - Map rendering  │
+             │   - Street View    │
+             │   - Satellite View │
+             │   - Terrain View   │
+             │   - Directions API │
+             │   - Geocoding      │
+             └────────────────────┘
+```
+
+---
+
+## Data Flow Diagrams
+
+### Authentication Flow
+
+```
+User Action          Frontend                  Backend                 Database
+─────────────────────────────────────────────────────────────────────────────
+Enters username  →   POST /api/auth/login  →   Validate credentials →  SELECT user
+and password         (send credentials)        Hash password check     WHERE username = ?
+                                                   │                      │
+                                                   ▼                      │
+                                               Create JWT token          │
+                                               Set HTTP-only cookie      │
+                                               INSERT session         ←──┘
+                                                   │
+                       ←──────────────────────────┘
+Receive user         GET /api/auth/me        →   Verify JWT         →  SELECT user
+object + permissions      (include cookie)        Load permissions      with role
+                       ←──────────────────────────┘
+Redirect to          Display dashboard
+dashboard
+```
+
+---
+
+### Profile Photo Upload Flow
+
+```
+User Action            Frontend                   Backend                Storage
+─────────────────────────────────────────────────────────────────────────────
+Clicks camera      →   File input triggered     →                        │
+icon on profile         Select image file           Validate MIME type    │
+                        (JPG/PNG/WEBP)              Check size (≤5MB)     │
+                                                       │                  │
+                                                       ▼                  │
+Create FormData     →   POST /api/profile/      →   Delete old photo   →  Remove from
+(append photo)          photo                      (if exists)            Supabase/local
+                        Content-Type:                │                    │
+                        multipart/form-data          ▼                    │
+                                                     Store new photo    → Upload to
+                                                       │                Supabase/local
+                                                       ▼                  │
+                                                   Generate URL           │
+                                                   UPDATE users        ←──┘
+                                                   SET profile_image
+                                                   WHERE id = ?
+                                                       │
+                       ←──────────────────────────────┘
+Display updated     →   Show photo in profile
+profile photo            card + header avatar
+                       Refresh auth context
+                       Update AppShell header
+```
+
+**Explanation:**
+- User hovers over their profile photo (or initials) and clicks the camera icon
+- Browser opens file picker filtered to JPG/PNG/WEBP images
+- Frontend validates file size (max 5 MB) and type
+- Frontend creates FormData and sends POST request
+- Backend deletes old profile photo from storage (if exists)
+- Backend stores new photo in Supabase Storage or local disk
+- Backend generates public URL and updates `users.profile_image`
+- Backend creates audit log entry
+- Frontend receives the new URL and updates profile card + header avatar
+- Auth context refreshes so all components show the new photo
+
+---
+
+### Live Google Maps Tracking Flow
+
+```
+Browser               Tracking Provider          Backend              Google Maps
+──────────────────────────────────────────────────────────────────────────────────
+Every 15 sec    →    navigator.geolocation  →                        │
+watchPosition()        .watchPosition()                              │
+                         │                                           │
+                         ▼                                           │
+                     GPS coordinates                                 │
+                     accuracy                                        │
+                     battery level                                   │
+                         │                                           │
+                         ▼                                           │
+                     socket.emit(           →   INSERT location_   →  DB
+                       'tracking:update',       tracks
+                       {lat, lng, acc})         │
+                         │                      ▼
+                         │                  Broadcast to
+                         │                  admins/supervisors
+                         │                      │
+Admin opens      →      │                  GET /api/tracking/
+live map                │                      latest
+                         │                      │
+                         │                      ▼
+                     Display on             Return all user
+                     Google Maps            locations with
+                     with profile           profile images
+                     photos on              and online status
+                     markers
+                         │                                           │
+                         │                                      ┌────▼────┐
+                     Click marker      →                    │ InfoWindow│
+                                                               │ Show:   │
+                                                               │ Photo   │
+                                                               │ Name    │
+                                                               │ Role    │
+                                                               │ Distance│
+                                                               │ Navigate│
+                                                               └─────────┘
+```
+
+---
+
+### Map Layers Flow
+
+```
+User Action            LiveMap Component          Google Maps API
+──────────────────────────────────────────────────────────────────────
+Clicks Layers     →    MapLayerControl opens     →
+button                  Show layer options:
+                         ├── Street View (roadmap)
+                         ├── Satellite
+                         ├── Terrain
+                         └── Hybrid
+
+Selects layer     →    Set activeLayer state     →  Map re-renders
+(Satellite)            Update map type             with new
+                                               mapTypeControl
+
+Result:              Map shows satellite imagery
+                     User can still see markers
+                     with profile photos overlaid
+```
+
+---
+
+### Admin Navigate-to-Location Flow
+
+```
+Admin Action           Frontend                  Backend / Google Maps
+──────────────────────────────────────────────────────────────────────────
+Admin sees        →    User list shows          →
+user "RAM" on          profile photo +           │
+live map               location coords           │
+                         │                       │
+                         ▼                       │
+Clicks "Navigate"  →   Calculate distance        │
+button next to         using Haversine           │
+RAM's entry            formula                   │
+                         │                       │
+                         ▼                       │
+                   window.open(              →   Open Google Maps
+                     google.com/maps/dir)        Directions page
+                     ?api=1                      with:
+                     &destination=lat,lng        ├── Origin: admin loc
+                     &travelmode=driving         ├── Dest: RAM loc
+                                                 ├── Mode: driving
+                                                 └── Route shown
+
+Alternative:       →   Click marker on map       →  InfoWindow shows
+                       Click "Navigate in         "Navigate in Google
+                       Google Maps" button         Maps" button
+                                                  Opens directions
+```
+
+**Distance Calculation (Haversine Formula):**
+
+```
+┌─────────────────────────────────────────────────┐
+│              HAVERSINE FORMULA                    │
+│                                                   │
+│  a = sin²(Δlat/2) +                             │
+│      cos(lat1) · cos(lat2) · sin²(Δlon/2)       │
+│                                                   │
+│  c = 2 · atan2(√a, √(1−a))                     │
+│                                                   │
+│  distance = R · c                                │
+│                                                   │
+│  Where R = 6,371 km (Earth's radius)            │
+│                                                   │
+│  Example:                                         │
+│  Admin at: 19.0760°N, 72.8777°E (Mumbai)       │
+│  RAM at:   18.5204°N, 73.8567°E (Pune)         │
+│  Distance: ~120.4 km                            │
+└─────────────────────────────────────────────────┘
+```
+
+---
+
+### Evidence Upload Flow
+
+```
+User Action          Frontend                  Backend                 Storage
+─────────────────────────────────────────────────────────────────────────────
+Selects file(s)  →   Create FormData      →   Parse multipart      →  Validate MIME type
+                      (append files)            request (Multer)       Check file size (25MB)
+                                                   │                      │
+                                                   ▼                      │
+                                               Store file             →  Upload to Supabase
+                                               (local or supabase)       or local disk
+                                                   │                      │
+                                                   ▼                      │
+                                               Generate URL              │
+                                               INSERT evidence_files  ←──┘
+                                                   │
+                       ←──────────────────────────┘
+Display file in       Show metadata +       ←   Return file URL
+evidence list         preview link
+```
+
+---
+
+### GPS Tracking Flow
+
+```
+Browser             Tracking Provider         Backend              Database
+────────────────────────────────────────────────────────────────────────────
+Every 30 min   →   navigator.geolocation  →                      │
+or manual sync      .getCurrentPosition()                        │
+                       │                                          │
+                       ▼                                          │
+                   GPS coordinates                                │
+                   accuracy                                       │
+                   battery level                                  │
+                       │                                          │
+                       ▼                                          │
+                   POST /api/tracking   →    INSERT location_  →  tracks
+                   {lat, lng, accuracy}      user_id, latitude,
+                                             longitude, accuracy,
+                                             battery_level, tracked_at
+                       │
+                       ▼
+                   Store in localStorage
+                   Update online status
+                       │
+                       ▼
+Supervisor       GET /api/tracking/latest →  SELECT latest    →  Return all
+opens map             (include cookie)       per user              user locations
+                                             WHERE tracked_at
+                                             > NOW() - 5 min
+                       │
+                       ▼
+                   Display on Google Maps
+                   Show profile photos
+                   Show online/offline status
+                   Show distance from admin
+```
+
+---
+
+### WebSocket Real-Time Flow
+
+```
+┌──────────────┐          ┌──────────────┐          ┌──────────────┐
+│   Employee   │          │   Socket.IO  │          │    Admin     │
+│   (Browser)  │          │   Server     │          │   (Browser)  │
+└──────┬───────┘          └──────┬───────┘          └──────┬───────┘
+       │                          │                          │
+       │  tracking:update         │                          │
+       │  {lat, lng, acc}        │                          │
+       │─────────────────────────→│                          │
+       │                          │  INSERT location_tracks  │
+       │                          │─────────────────────────→│ DB
+       │                          │                          │
+       │                          │  tracking:update         │
+       │                          │  {userId, name, photo,   │
+       │                          │   lat, lng, online}      │
+       │                          │─────────────────────────→│
+       │                          │                          │
+       │                          │                    ┌─────▼─────┐
+       │                          │                    │ Update map│
+       │                          │                    │ markers   │
+       │                          │                    │ in real   │
+       │                          │                    │ time      │
+       │                          │                    └───────────┘
+       │                          │
+       │  tracking:confirmed      │
+       │←─────────────────────────│
+       │  {trackedAt: timestamp}  │
+```
 
 ---
 
@@ -103,47 +499,39 @@ This is not a generic project management tool. It is a **compliance enforcement 
 ```
 bsc_v1/
 │
-├── frontend/                          # React SPA (Vercel)
+├── frontend/                          # React SPA (Vite)
 │   ├── public/
-│   │   ├── bsc-logo.png              # Application logo
-│   │   └── bsc-icon.png              # Favicon
+│   │   ├── bsc-logo.png
+│   │   └── manifest.json
 │   ├── src/
 │   │   ├── components/                # Reusable UI components
+│   │   │   ├── LiveMap.tsx            # Google Maps with layers, profile photos, navigation
+│   │   │   ├── AppShell.tsx           # Page layout with profile photo in header
 │   │   │   ├── ConsentGate.tsx        # First-visit consent modal
-│   │   │   ├── AppShell.tsx           # Page layout wrapper
-│   │   │   ├── Sidebar.tsx            # Navigation sidebar
-│   │   │   ├── Header.tsx             # Top header bar
-│   │   │   ├── NotificationBell.tsx   # Notification dropdown
 │   │   │   ├── EvidenceUploader.tsx   # File upload component
+│   │   │   ├── Modal.tsx              # Reusable modal
 │   │   │   ├── States.tsx             # Loading & error states
-│   │   │   └── Format.tsx             # Date/number formatters
+│   │   │   └── ...
 │   │   ├── lib/                       # Core libraries
-│   │   │   ├── api.ts                 # HTTP client (fetch wrapper)
+│   │   │   ├── api.ts                 # HTTP client with retry logic
 │   │   │   ├── auth.tsx               # Auth context & provider
-│   │   │   ├── tracking.tsx           # GPS tracking logic
-│   │   │   └── format.ts             # Formatting utilities
+│   │   │   ├── tracking.tsx           # GPS tracking (continuous watchPosition)
+│   │   │   ├── useSocket.ts           # Socket.IO client hook
+│   │   │   ├── types.ts               # TypeScript interfaces
+│   │   │   └── format.ts              # Formatting utilities
 │   │   ├── pages/                     # Page components
-│   │   │   ├── Landing.tsx            # Public marketing page
-│   │   │   ├── Login.tsx              # Login form
+│   │   │   ├── Profile.tsx            # Profile with photo upload
 │   │   │   ├── Dashboard.tsx          # User dashboard
-│   │   │   ├── Checkpoints.tsx        # Assigned checkpoints list
-│   │   │   ├── CheckpointSubmit.tsx   # Submit checkpoint data
-│   │   │   ├── Tracking.tsx           # GPS tracking page
-│   │   │   ├── Evidence.tsx           # Uploaded files list
-│   │   │   ├── Notifications.tsx      # Notifications page
-│   │   │   ├── Profile.tsx            # User profile settings
-│   │   │   └── admin/                 # Admin pages
-│   │   │       ├── AdminDashboard.tsx # Admin overview
-│   │   │       ├── AdminUsers.tsx     # User management
-│   │   │       ├── AdminModules.tsx   # Module management
-│   │   │       ├── AdminAudit.tsx     # Audit log viewer
-│   │   │       └── AdminSettings.tsx  # System settings
+│   │   │   ├── admin/
+│   │   │   │   ├── AdminTracking.tsx  # Live map + user list with navigate
+│   │   │   │   ├── AdminUsers.tsx     # User management
+│   │   │   │   └── ...
+│   │   │   └── ...
 │   │   ├── App.tsx                    # Route definitions
-│   │   ├── main.tsx                   # Entry point (with ConsentGate)
+│   │   ├── main.tsx                   # Entry point
 │   │   └── index.css                  # Global styles
-│   ├── vercel.json                    # Vercel config + API proxy
-│   ├── package.json
-│   └── tailwind.config.js
+│   ├── .env                           # VITE_GOOGLE_MAPS_API_KEY
+│   └── package.json
 │
 ├── backend/                           # Express API (Render)
 │   ├── src/
@@ -151,341 +539,141 @@ bsc_v1/
 │   │   ├── app.ts                     # Express app setup
 │   │   ├── config.ts                  # Environment variables
 │   │   ├── db.ts                      # PostgreSQL connection pool
+│   │   ├── websocket.ts               # Socket.IO server (tracking + chat)
 │   │   ├── middleware/
 │   │   │   ├── auth.ts               # JWT authentication
-│   │   │   ├── rbac.ts               # Role-based access control
 │   │   │   └── rateLimit.ts          # Request rate limiting
 │   │   ├── routes/
-│   │   │   ├── auth.routes.ts        # Login, logout, session
-│   │   │   ├── admin.routes.ts       # Users, modules, departments
-│   │   │   ├── tracking.routes.ts    # GPS location endpoints
-│   │   │   ├── evidence.routes.ts    # File upload/download
-│   │   │   ├── notifications.routes.ts # In-app notifications
-│   │   │   ├── checkpoint.routes.ts  # Checkpoint submissions
-│   │   │   ├── reports.routes.ts     # Dashboard & reports
-│   │   │   └── profile.routes.ts     # User profile
-│   │   ├── jobs/
-│   │   │   └── autoApprove.ts        # Auto-approve pending submissions
+│   │   │   ├── profile.routes.ts      # Profile + photo upload/delete
+│   │   │   ├── tracking.routes.ts     # GPS location endpoints
+│   │   │   ├── auth.routes.ts         # Login, logout, session
+│   │   │   ├── admin.routes.ts        # Users, modules, departments
+│   │   │   ├── evidence.routes.ts     # File upload/download
+│   │   │   └── ...
 │   │   └── utils/
-│   │       ├── session.ts            # JWT + cookie management
-│   │       ├── audit.ts              # Audit logging
-│   │       ├── logger.ts             # Request logging
-│   │       └── storage.ts            # File storage (local/supabase)
-│   ├── uploads/                       # Local file storage
-│   ├── package.json
-│   └── tsconfig.json
+│   │       ├── session.ts             # JWT + cookie management
+│   │       ├── audit.ts               # Audit logging
+│   │       └── storage.ts             # File storage (local/supabase)
+│   ├── uploads/
+│   │   └── profiles/                  # Local profile photo storage
+│   └── package.json
 │
 ├── database/
 │   ├── schema.sql                     # Full database schema
-│   └── seeds/
-│       └── seed.sql                   # Demo data
+│   └── supabase-complete-setup.sql
 │
-├── render.yaml                        # Render deployment config
 ├── README.md                          # This file
 └── document.md                        # Detailed project documentation
 ```
 
 ---
 
-## System Architecture
+## Profile Photo Upload Flow (Detailed)
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                     USER'S BROWSER                               │
-│                                                                   │
-│   ┌─────────────────────────────────────────────────────────┐   │
-│   │                  REACT 19 (Vite)                         │   │
-│   │                                                          │   │
-│   │   ┌───────────┐  ┌───────────┐  ┌───────────┐         │   │
-│   │   │ Consent   │→ │ Auth      │→ │ Tracking  │         │   │
-│   │   │ Gate      │  │ Provider  │  │ Provider  │         │   │
-│   │   └───────────┘  └───────────┘  └───────────┘         │   │
-│   │                                                          │   │
-│   │   ┌─────────────────────────────────────────────────┐  │   │
-│   │   │         API Client (fetch + cookies)             │  │   │
-│   │   └─────────────────────────────────────────────────┘  │   │
-│   └─────────────────────────────────────────────────────────┘   │
-│                              │                                   │
-│                    POST /api/auth/login                           │
-│                    GET  /api/tracking/latest                      │
-│                    POST /api/evidence                             │
-│                              │                                   │
-└──────────────────────────────┼───────────────────────────────────┘
-                               │
-                    ┌──────────▼──────────┐
-                    │      VERCEL         │
-                    │                      │
-                    │  Static files (CDN)  │
-                    │  API proxy rewrite   │
-                    │  /api/* → Render     │
-                    └──────────┬──────────┘
-                               │
-                    ┌──────────▼──────────┐
-                    │      RENDER         │
-                    │                      │
-                    │   Express REST API   │
-                    │   JWT Validation     │
-                    │   File Upload        │
-                    │   Cron Jobs          │
-                    └──┬──────┬──────┬───┘
-                       │      │      │
-            ┌──────────▼┐  ┌──▼──┐  ▼──────────┐
-            │ SUPABASE  │  │ JWT │  SUPABASE   │
-            │ PostgreSQL│     │    │ Storage    │
-            │           │     │    │            │
-            │ Tables:   │     │    │ Buckets:   │
-            │ users     │     │    │ evidence   │
-            │ modules   │     │    │            │
-            │ evidence  │     │    └────────────┘
-            │ tracks    │     │
-            └───────────┘  └──┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                    PROFILE PHOTO UPLOAD PROCESS                      │
+│                                                                      │
+│  1. USER clicks camera icon on profile card                         │
+│     │                                                                │
+│     ▼                                                                │
+│  2. BROWSER opens file picker (JPG/PNG/WEBP only)                   │
+│     │                                                                │
+│     ▼                                                                │
+│  3. FRONTEND validates:                                              │
+│     ├── File type: image/jpeg, image/png, image/webp                │
+│     └── File size: ≤ 5 MB                                           │
+│     │                                                                │
+│     ▼                                                                │
+│  4. FRONTEND creates FormData with file                              │
+│     │                                                                │
+│     ▼                                                                │
+│  5. POST /api/profile/photo (multipart/form-data)                    │
+│     │                                                                │
+│     ▼                                                                │
+│  6. BACKEND (Multer middleware):                                     │
+│     ├── Validates MIME type                                          │
+│     ├── Validates file size                                          │
+│     └── Stores file (memory for Supabase, disk for local)           │
+│     │                                                                │
+│     ▼                                                                │
+│  7. BACKEND deletes old photo:                                       │
+│     ├── If Supabase: remove from storage bucket                     │
+│     └── If local: unlink from uploads/profiles/                     │
+│     │                                                                │
+│     ▼                                                                │
+│  8. BACKEND stores new photo:                                        │
+│     ├── If Supabase: upload to profiles/{userId}/{uuid}.ext         │
+│     └── If local: save to uploads/profiles/{uuid}.ext               │
+│     │                                                                │
+│     ▼                                                                │
+│  9. BACKEND updates database:                                        │
+│     └── UPDATE users SET profile_image = '{public_url}'             │
+│     │                                                                │
+│     ▼                                                                │
+│  10. BACKEND creates audit log:                                      │
+│      └── INSERT INTO audit_logs (action: PROFILE_PHOTO_UPDATED)     │
+│      │                                                               │
+│      ▼                                                               │
+│  11. FRONTEND receives URL and updates:                              │
+│      ├── Profile page photo display                                  │
+│      ├── AppShell header avatar                                      │
+│      ├── Auth context (user.profileImage)                            │
+│      └── Live map markers (via API refresh)                         │
+│                                                                      │
+│  RESULT: Photo visible in profile, header, and on live map markers   │
+└─────────────────────────────────────────────────────────────────────┘
 ```
-
-**How it works:**
-
-1. User opens the frontend on Vercel
-2. React app loads and checks for consent (localStorage)
-3. If no consent, a mandatory modal appears
-4. After consent, user logs in via `/api/auth/login`
-5. Backend validates credentials, creates JWT, sets HTTP-only cookie
-6. All subsequent requests include the cookie automatically
-7. Vercel proxies `/api/*` requests to Render backend
-8. Backend validates JWT on every request
-9. Backend queries PostgreSQL for data
-10. Backend returns JSON responses to frontend
-11. Frontend displays data in charts, tables, and maps
 
 ---
 
-## Data Flow Diagrams
-
-### Authentication Flow
-
-**What happens when a user logs in:**
+## Live Google Maps Tracking Flow (Detailed)
 
 ```
-User Action          Frontend                  Backend                 Database
-─────────────────────────────────────────────────────────────────────────────
-Enters username  →   POST /api/auth/login  →   Validate credentials →  SELECT user
-and password         (send credentials)        Hash password check     WHERE username = ?
-                                                  │                      │
-                                                  ▼                      │
-                                              Create JWT token          │
-                                              Set HTTP-only cookie      │
-                                              INSERT session         ←──┘
-                                                  │
-                       ←──────────────────────────┘
-Receive user         GET /api/auth/me        →   Verify JWT         →  SELECT user
-object + permissions      (include cookie)        Load permissions      with role
-                                                  │                      │
-                       ←──────────────────────────┘
-Redirect to          Display dashboard
-dashboard
+┌─────────────────────────────────────────────────────────────────────┐
+│                  LIVE GOOGLE MAPS TRACKING                           │
+│                                                                      │
+│  ┌──────────────────────────────────────────────────────────────┐   │
+│  │                     MAP COMPONENT                             │   │
+│  │                                                               │   │
+│  │  ┌────────────────────────────────────────────────────────┐  │   │
+│  │  │                MAP LAYER CONTROL                        │  │   │
+│  │  │                                                         │  │   │
+│  │  │  [Layers Button] → Street View | Satellite | Terrain   │  │   │
+│  │  │                    Hybrid                               │  │   │
+│  │  └────────────────────────────────────────────────────────┘  │   │
+│  │                                                               │   │
+│  │  ┌────────────────────────────────────────────────────────┐  │   │
+│  │  │              USER MARKERS (with profile photos)         │  │   │
+│  │  │                                                         │  │   │
+│  │  │   ┌─────┐   ┌─────┐   ┌─────┐   ┌─────┐              │  │   │
+│  │  │   │RAM  │   │SHYAM│   │RAM  │   │PRIYA│              │  │   │
+│  │  │   │ 📷  │   │ 📷  │   │ 📷  │   │ 📷  │              │  │   │
+│  │  │   │●ON  │   │○OFF │   │●ON  │   │●ON  │              │  │   │
+│  │  │   └──┬──┘   └─────┘   └─────┘   └─────┘              │  │   │
+│  │  │      │                                                  │  │   │
+│  │  └──────┼──────────────────────────────────────────────────┘  │   │
+│  │         │                                                      │   │
+│  │         ▼                                                      │   │
+│  │  ┌──────────────────────────────────────┐                     │   │
+│  │  │           INFO WINDOW                 │                     │   │
+│  │  │                                       │                     │   │
+│  │  │  ┌──────┐  RAM Kumar                 │                     │   │
+│  │  │  │ 📷   │  Employee Code: EMP001     │                     │   │
+│  │  │  └──────┘  [Field Executive]         │                     │   │
+│  │  │            Engineering Dept          │                     │   │
+│  │  │                                       │                     │   │
+│  │  │  19.076000, 72.877700                │                     │   │
+│  │  │  ● Online — GPS live                  │                     │   │
+│  │  │  Battery: 85%                         │                     │   │
+│  │  │  Accuracy: ±15 m                      │                     │   │
+│  │  │  Distance: 120.4 km                   │                     │   │
+│  │  │                                       │                     │   │
+│  │  │  [Navigate in Google Maps →]          │                     │   │
+│  │  └───────────────────────────────────────┘                     │   │
+│  └──────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────┘
 ```
-
-**Explanation:**
-- User enters credentials in the login form
-- Frontend sends POST request with username and password
-- Backend queries the database for the user
-- Backend uses bcrypt to compare the password hash
-- If valid, backend creates a JWT token with user ID and role
-- Token is set as an HTTP-only cookie (not accessible via JavaScript)
-- Session is recorded in the database for tracking
-- Frontend receives the user object with all permissions
-- Frontend redirects to the appropriate dashboard based on role
-
----
-
-### Evidence Upload Flow
-
-**What happens when a user uploads a file:**
-
-```
-User Action          Frontend                  Backend                 Storage
-─────────────────────────────────────────────────────────────────────────────
-Selects file(s)  →   Create FormData      →   Parse multipart      →  Validate MIME type
-                      (append files)            request (Multer)       Check file size (25MB)
-                                                  │                      │
-                                                  ▼                      │
-                                              Store file             →  Upload to Supabase
-                                              (local or supabase)       or local disk
-                                                  │                      │
-                                                  ▼                      │
-                                              Generate URL              │
-                                              INSERT evidence_files  ←──┘
-                                                  │
-                       ←──────────────────────────┘
-Display file in       Show metadata +       ←   Return file URL
-evidence list         preview link
-```
-
-**Explanation:**
-- User clicks upload button and selects file(s)
-- Frontend creates a FormData object with the files
-- Frontend sends POST request with multipart/form-data content type
-- Backend uses Multer to parse the multipart request
-- Multer validates the MIME type against an allowlist
-- Multer checks the file size is under 25MB
-- File is stored either locally in `uploads/` or uploaded to Supabase Storage
-- Backend generates a public URL for the file
-- Backend inserts a record into the `evidence_files` table
-- Frontend receives the metadata and displays the file in the evidence list
-
----
-
-### GPS Tracking Flow
-
-**What happens when location is captured:**
-
-```
-Browser             Tracking Provider         Backend              Database
-─────────────────────────────────────────────────────────────────────────────
-Every 30 min   →   navigator.geolocation  →                      │
-or manual sync      .getCurrentPosition()                        │
-                      │                                           │
-                      ▼                                           │
-                  GPS coordinates                                 │
-                  accuracy                                        │
-                  battery level                                   │
-                      │                                           │
-                      ▼                                           │
-                  POST /api/tracking   →    INSERT location_    →  tracks
-                  {lat, lng, accuracy}      user_id, latitude,
-                                             longitude, accuracy,
-                                             battery_level, tracked_at
-                      │
-                      ▼
-                  Store in localStorage
-                  Update online status
-                      │
-                      ▼
-Supervisor       GET /api/tracking/latest →  SELECT latest    →  Return all
-opens map             (include cookie)       per user              user locations
-                                             WHERE tracked_at
-                                             > NOW() - 5 min
-                      │
-                      ▼
-                  Display on Leaflet map
-                  Show online/offline status
-```
-
-**Explanation:**
-- Browser's Geolocation API is triggered (automatic or manual)
-- Browser requests GPS coordinates from the device
-- Coordinates include latitude, longitude, and accuracy
-- Frontend also captures battery level
-- Frontend sends POST request with location data
-- Backend inserts a record into the `location_tracks` table
-- Location is stored with a timestamp
-- When supervisor opens the map, backend queries latest locations
-- Backend returns all users with location in last 5 minutes
-- Frontend displays markers on a Leaflet map
-- Online status is determined by whether location was updated recently
-
----
-
-### Checkpoint Submission Flow
-
-**What happens when a user submits a checkpoint:**
-
-```
-User Action          Frontend                  Backend                 Database
-─────────────────────────────────────────────────────────────────────────────
-Fills checkpoint →   POST /api/checkpoints →  Validate input     →  INSERT submission
-form + uploads       /submit                 Check permissions      (status: pending)
-evidence             {checkpoint_id,         Link evidence files
-                      data, evidence_ids}    Create audit log
-                                                  │
-                       ←──────────────────────────┘
-Receive               Display success
-confirmation          notification
-                                                  │
-Supervisor reviews:                                │
-                                                  │
-Approves          →   PATCH /api/admin       →   UPDATE submission →  status: approved
-                      /submissions/:id/appve      reviewed_by
-                                                  reviewed_at
-                                                  │
-Rejects           →   PATCH /api/admin       →   UPDATE submission →  status: rejected
-                      /submissions/:id/reject     supervisor_comment
-                                                  reviewed_by
-                                                  │
-Auto-approve (1hr):                                │
-                      Cron job runs            →  UPDATE submissions → status: approved
-                      every 5 minutes              WHERE status = pending
-                                                   AND submitted_at < NOW() - 1 hour
-```
-
-**Explanation:**
-- User navigates to an assigned checkpoint
-- User fills in the required data fields
-- User optionally uploads evidence files
-- Frontend sends POST request with submission data
-- Backend validates the input using Zod schemas
-- Backend checks user permissions
-- Backend creates a submission record with status "pending"
-- Backend links any uploaded evidence files
-- Backend creates an audit log entry
-- User receives a success notification
-- Supervisor can review the submission
-- Supervisor can approve or reject with comments
-- If no action within 1 hour, cron job auto-approves
-
----
-
-### Consent Gate Flow
-
-**What happens on first visit:**
-
-```
-User Opens Site      ConsentGate              localStorage
-─────────────────────────────────────────────────────────────
-                  →  Check localStorage
-                     key: bsc_consent_accepted
-                          │
-                          ▼
-                     Key exists?
-                     ┌────┴────┐
-                     No        Yes
-                     │          │
-                     ▼          ▼
-              Show modal    Render app
-              (blocking)    directly
-                     │
-                     ▼
-              User must check:
-              ☐ Terms & Conditions
-              ☐ Privacy Policy
-              ☐ Grant Location
-                     │
-                     ▼
-              All checked?
-              ┌────┴────┐
-              No        Yes
-              │          │
-              ▼          ▼
-           Button     Save to
-           disabled   localStorage
-              │       key: bsc_consent_accepted
-              │       key: bsc_location_granted
-              │          │
-              └──────────┘
-                          │
-                          ▼
-                     Render app
-```
-
-**Explanation:**
-- When the app loads, ConsentGate checks localStorage
-- If consent was previously given, the app renders immediately
-- If not, a modal blocks the entire screen
-- User must read and check Terms & Conditions checkbox
-- User must read and check Privacy Policy checkbox
-- User must grant browser location permission
-- All three checkboxes must be checked
-- The submit button remains disabled until all are checked
-- Once all checked, consent is saved to localStorage
-- The modal closes and the app renders
 
 ---
 
@@ -502,10 +690,11 @@ User Opens Site      ConsentGate              localStorage
 │ phone        │            │                    │
 │ username     │     ┌──────────────┐            │
 │ password_hash│     │role_permissions│◀──────────┘
-│ status       │     ├──────────────┤
-│ role_id (FK) │     │ role_id      │
-│ dept_id (FK) │     │ permission_id│
-└──────────────┘     └──────────────┘
+│ profile_image│     ├──────────────┤
+│ status       │     │ role_id      │
+│ role_id (FK) │     │ permission_id│
+│ dept_id (FK) │     └──────────────┘
+└──────────────┘
         │
         │
 ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
@@ -572,11 +761,11 @@ User Opens Site      ConsentGate              localStorage
 
 | Role | Access Level | Can Do |
 |------|-------------|--------|
-| **Admin** | Full | Everything. Bypasses all checks. Manages users, modules, departments, sees audit logs. |
+| **Admin** | Full | Everything. Bypasses all checks. Manages users, sees audit logs, navigates to any user location. |
 | **Manager** | Review | Approve/reject submissions. View reports. Manage team. |
 | **Supervisor** | Team | Approve/reject own team submissions. View team tracking. |
 | **Auditor** | Read | View all submissions, audit logs, reports. Cannot modify. |
-| **User** | Standard | Submit checkpoints. Upload evidence. View own data. |
+| **User** | Standard | Submit checkpoints. Upload evidence. Upload profile photo. View own data. |
 | **Viewer** | Minimal | View own data and reports only. |
 
 **Permission Categories:**
@@ -605,6 +794,25 @@ User Opens Site      ConsentGate              localStorage
 | GET | `/api/auth/me` | Get current user from session |
 | POST | `/api/auth/logout` | Clear session and cookie |
 
+### Profile
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/profile` | Get user profile data |
+| PUT | `/api/profile` | Update profile (name, email, phone) |
+| PUT | `/api/profile/password` | Change password |
+| POST | `/api/profile/photo` | Upload profile photo (JPG/PNG/WEBP, 5MB) |
+| DELETE | `/api/profile/photo` | Remove profile photo |
+
+### Tracking
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/tracking` | Submit GPS location |
+| GET | `/api/tracking/me` | Get own location history |
+| GET | `/api/tracking/latest` | Get latest location per user (with profile images) |
+| GET | `/api/tracking/history` | Get user location history |
+
 ### Admin - Users
 
 | Method | Endpoint | Description |
@@ -615,34 +823,6 @@ User Opens Site      ConsentGate              localStorage
 | DELETE | `/api/admin/users/:id` | Delete user |
 | POST | `/api/admin/users/:id/reset-password` | Reset user password |
 
-### Admin - Modules
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/admin/modules` | List all modules |
-| POST | `/api/admin/modules` | Create module |
-| PUT | `/api/admin/modules/:id` | Update module |
-| DELETE | `/api/admin/modules/:id` | Delete module |
-| POST | `/api/admin/modules/:id/clone` | Clone module with checkpoints |
-
-### Admin - Checkpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/admin/modules/:moduleId/checkpoints` | List checkpoints in module |
-| POST | `/api/admin/modules/:moduleId/checkpoints` | Create checkpoint |
-| PUT | `/api/admin/checkpoints/:id` | Update checkpoint |
-| DELETE | `/api/admin/checkpoints/:id` | Delete checkpoint |
-
-### Tracking
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/tracking` | Submit GPS location |
-| GET | `/api/tracking/me` | Get own location history |
-| GET | `/api/tracking/latest` | Get latest location per user |
-| GET | `/api/tracking/history` | Get user location history |
-
 ### Evidence
 
 | Method | Endpoint | Description |
@@ -650,13 +830,6 @@ User Opens Site      ConsentGate              localStorage
 | POST | `/api/evidence` | Upload evidence file |
 | GET | `/api/evidence/:id` | Download evidence file |
 | DELETE | `/api/evidence/:id` | Delete evidence file |
-
-### Checkpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/checkpoints/assigned` | Get assigned checkpoints |
-| POST | `/api/checkpoints/submit` | Submit checkpoint completion |
 
 ### Notifications
 
@@ -669,16 +842,49 @@ User Opens Site      ConsentGate              localStorage
 
 ---
 
+## Environment Variables
+
+### Frontend (.env)
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `VITE_API_URL` | No | Backend API URL (leave empty for Vercel proxy) |
+| `VITE_GOOGLE_MAPS_API_KEY` | **Yes** | Google Maps API key for live map with layers |
+
+### Backend (.env)
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | **Yes** | PostgreSQL connection string |
+| `DB_SSL` | No | Enable SSL for database (default: auto-detect) |
+| `SESSION_SECRET` | **Yes** | JWT signing secret |
+| `CORS_ORIGIN` | **Yes** | Comma-separated allowed origins |
+| `FILE_STORAGE_TYPE` | No | `local` or `supabase` (default: local) |
+| `SUPABASE_URL` | If supabase | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | If supabase | Supabase service role key |
+| `SUPABASE_BUCKET` | No | Storage bucket name (default: evidence) |
+| `AUTO_APPROVE_HOURS` | No | Hours before auto-approve (default: 1) |
+| `CRON_ENABLED` | No | Enable cron jobs (default: true) |
+
+---
+
 ## Deployment
+
+### Google Maps API Setup
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select existing
+3. Enable **Maps JavaScript API**
+4. Create an API key (restrict to your domain)
+5. Add to frontend `.env`: `VITE_GOOGLE_MAPS_API_KEY=your_key_here`
 
 ### Supabase (Database)
 
 1. Create a Supabase project at supabase.com
 2. Open SQL Editor
 3. Run `database/schema.sql` to create all tables
-4. Run `database/seeds/seed.sql` for demo data
-5. Copy the PostgreSQL connection string
-6. Copy the service role key from Settings > API
+4. Copy the PostgreSQL connection string
+5. Copy the service role key from Settings > API
 
 ### Render (Backend)
 
@@ -687,19 +893,7 @@ User Opens Site      ConsentGate              localStorage
 3. Set root directory to `backend`
 4. Build command: `npm install && npm run build`
 5. Start command: `node dist/server.js`
-6. Add environment variables:
-
-| Variable | Value |
-|----------|-------|
-| DATABASE_URL | Your PostgreSQL connection string |
-| DB_SSL | true |
-| SESSION_SECRET | Any random secret string |
-| CORS_ORIGIN | https://bsc-v1-seven.vercel.app |
-| FILE_STORAGE_TYPE | supabase |
-| SUPABASE_URL | Your Supabase project URL |
-| SUPABASE_SERVICE_ROLE_KEY | Your service role key |
-| AUTO_APPROVE_HOURS | 1 |
-| CRON_ENABLED | true |
+6. Add environment variables (see table above)
 
 ### Vercel (Frontend)
 
@@ -708,7 +902,9 @@ User Opens Site      ConsentGate              localStorage
 3. Build command: `npm run build`
 4. Output directory: `dist`
 5. Install command: `npm install`
-6. Add environment variable: `VITE_API_URL` = `https://bsc-v1.onrender.com`
+6. Add environment variables:
+   - `VITE_API_URL` = `https://bsc-v1.onrender.com`
+   - `VITE_GOOGLE_MAPS_API_KEY` = `your_google_maps_api_key`
 7. Deploy
 
 ---
@@ -719,6 +915,7 @@ User Opens Site      ConsentGate              localStorage
 
 - Node.js 18 or higher
 - PostgreSQL database
+- Google Maps API key (free tier available)
 - npm or yarn
 
 ### Setup
@@ -736,15 +933,25 @@ npm run init
 # Set up the backend
 cd ../backend
 cp .env.example .env
-# Edit .env with your DATABASE_URL
+# Edit .env with your DATABASE_URL and SESSION_SECRET
 npm install
 npm run dev
 
 # Set up the frontend
 cd ../frontend
+cp .env.example .env
+# Edit .env with VITE_GOOGLE_MAPS_API_KEY
 npm install
 npm run dev
 ```
+
+### Getting a Google Maps API Key
+
+1. Go to https://console.cloud.google.com/
+2. Create a project
+3. Enable "Maps JavaScript API"
+4. Go to Credentials → Create Credentials → API Key
+5. Copy the key into `frontend/.env` as `VITE_GOOGLE_MAPS_API_KEY`
 
 ### Demo Accounts
 
@@ -754,6 +961,38 @@ npm run dev
 | Supervisor | jane.smith | Supervisor@123 |
 | Manager | mike.ross | Manager@123 |
 | User | john.doe | User@123456 |
+
+---
+
+## How Data Flows Between Components
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         DATA FLOW SUMMARY                                │
+│                                                                          │
+│  ┌────────────┐    ┌────────────┐    ┌────────────┐    ┌────────────┐  │
+│  │  Profile   │───→│   Auth     │───→│  AppShell  │───→│  Live Map  │  │
+│  │  Photo     │    │  Context   │    │  Header    │    │  Markers   │  │
+│  │  Upload    │    │ (refresh)  │    │ (avatar)   │    │ (photos)   │  │
+│  └────────────┘    └────────────┘    └────────────┘    └────────────┘  │
+│       │                  │                  │                 │          │
+│       ▼                  ▼                  ▼                 ▼          │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │                        BACKEND API                                │   │
+│  │                                                                  │   │
+│  │  POST /api/profile/photo  →  UPDATE users.profile_image        │   │
+│  │  GET  /api/auth/me        →  Return user with profileImage     │   │
+│  │  GET  /api/tracking/latest → Return users with profileImage    │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+│       │                  │                  │                 │          │
+│       ▼                  ▼                  ▼                 ▼          │
+│  ┌────────────┐    ┌────────────┐    ┌────────────┐    ┌────────────┐  │
+│  │ Supabase   │    │  WebSocket │    │  Google    │    │  Browser   │  │
+│  │ Storage    │    │  Server    │    │  Maps API  │    │  Storage   │  │
+│  │ (photos)   │    │ (realtime) │    │ (render)   │    │ (consent)  │  │
+│  └────────────┘    └────────────┘    └────────────┘    └────────────┘  │
+└─────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 

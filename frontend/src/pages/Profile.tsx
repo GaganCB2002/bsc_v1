@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { UserCircle, Lock, Save, Loader2, CheckCircle2, ShieldCheck, Building2 } from 'lucide-react'
-import { get, put } from '../lib/api'
+import { UserCircle, Lock, Save, Loader2, CheckCircle2, ShieldCheck, Building2, Camera, Trash2 } from 'lucide-react'
+import { get, put, post, del } from '../lib/api'
+import { apiUrl } from '../lib/api'
 import { Spinner, ErrorState, PageHeader } from '../components/States'
 import { useAuth } from '../lib/auth'
 import { fmtDateTime } from '../lib/format'
@@ -37,6 +38,10 @@ export default function Profile() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [savingPw, setSavingPw] = useState(false)
   const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null)
+
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [photoMsg, setPhotoMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const load = () => {
     setLoading(true)
@@ -92,6 +97,49 @@ export default function Profile() {
     }
   }
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoMsg({ ok: false, text: 'Photo must be under 5 MB' })
+      return
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setPhotoMsg({ ok: false, text: 'Only JPG, PNG, and WEBP images are allowed' })
+      return
+    }
+    setUploadingPhoto(true)
+    setPhotoMsg(null)
+    try {
+      const formData = new FormData()
+      formData.append('photo', file)
+      const result = await post<{ profileImage: string }>('/api/profile/photo', formData)
+      if (profile) setProfile({ ...profile, profile_image: result.profileImage })
+      setPhotoMsg({ ok: true, text: 'Profile photo updated successfully' })
+      await refresh()
+    } catch (err) {
+      setPhotoMsg({ ok: false, text: (err as Error).message })
+    } finally {
+      setUploadingPhoto(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  const handlePhotoRemove = async () => {
+    setUploadingPhoto(true)
+    setPhotoMsg(null)
+    try {
+      await del('/api/profile/photo')
+      if (profile) setProfile({ ...profile, profile_image: null })
+      setPhotoMsg({ ok: true, text: 'Profile photo removed' })
+      await refresh()
+    } catch (err) {
+      setPhotoMsg({ ok: false, text: (err as Error).message })
+    } finally {
+      setUploadingPhoto(false)
+    }
+  }
+
   if (loading) return <Spinner text="Loading profile..." />
   if (error || !profile) return <ErrorState message={error || 'Failed to load profile'} onRetry={load} />
 
@@ -104,9 +152,52 @@ export default function Profile() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Identity card */}
         <div className="card p-6 text-center">
-          <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-sky-400 to-blue-700 text-white text-2xl font-extrabold flex items-center justify-center shadow-lg">
-            {initials}
+          <div className="relative w-24 h-24 mx-auto group">
+            {profile.profile_image ? (
+              <img
+                src={profile.profile_image.startsWith('http') ? profile.profile_image : apiUrl(profile.profile_image)}
+                alt={profile.full_name}
+                className="w-24 h-24 rounded-2xl object-cover shadow-lg border-2 border-white"
+              />
+            ) : (
+              <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-700 text-white text-2xl font-extrabold flex items-center justify-center shadow-lg">
+                {initials}
+              </div>
+            )}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingPhoto}
+              className="absolute inset-0 rounded-2xl bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer"
+              title="Upload photo"
+            >
+              {uploadingPhoto ? (
+                <Loader2 className="w-5 h-5 text-white animate-spin" />
+              ) : (
+                <Camera className="w-5 h-5 text-white" />
+              )}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handlePhotoUpload}
+            />
           </div>
+          {profile.profile_image && (
+            <button
+              onClick={handlePhotoRemove}
+              disabled={uploadingPhoto}
+              className="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold text-danger hover:text-red-700 transition-colors"
+            >
+              <Trash2 className="w-3 h-3" /> Remove photo
+            </button>
+          )}
+          {photoMsg && (
+            <p className={`text-[10px] font-semibold mt-2 ${photoMsg.ok ? 'text-success' : 'text-danger'}`}>
+              {photoMsg.text}
+            </p>
+          )}
           <h2 className="text-base font-bold text-text mt-3">{profile.full_name}</h2>
           <p className="text-xs text-text-muted">{profile.employee_code}</p>
           <div className="flex justify-center gap-2 mt-3 flex-wrap">

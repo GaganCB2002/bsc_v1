@@ -36,7 +36,7 @@ import {
 } from 'lucide-react'
 import { useAuth, can } from '../lib/auth'
 import { useTracking } from '../lib/tracking'
-import { get, patch, post } from '../lib/api'
+import { get, patch, post, apiUrl } from '../lib/api'
 import { timeAgo } from '../lib/format'
 import ThemeToggle from './ThemeToggle'
 import PWAInstallBanner from './PWAInstallBanner'
@@ -228,6 +228,10 @@ export default function AppShell() {
         ? 'bg-white/15 text-white shadow-lg shadow-black/10'
         : 'text-sky-100/70 hover:bg-white/10 hover:text-white'
     }`
+
+  const profilePhotoUrl = user.profileImage
+    ? (user.profileImage.startsWith('http') ? user.profileImage : apiUrl(user.profileImage))
+    : null
 
   return (
     <div className="h-screen flex overflow-hidden bg-background">
@@ -427,9 +431,13 @@ export default function AppShell() {
                 onClick={() => setProfileOpen(!profileOpen)}
                 className="flex items-center gap-2 px-1.5 py-1 rounded-xl hover:bg-primary-faint transition-colors border border-transparent hover:border-border-light"
               >
-                <span className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-500 to-blue-700 text-white text-xs font-bold flex items-center justify-center shadow-sm">
-                  {initials}
-                </span>
+                {profilePhotoUrl ? (
+                  <img src={profilePhotoUrl} alt={user.fullName} className="w-8 h-8 rounded-full object-cover shadow-sm" />
+                ) : (
+                  <span className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-500 to-blue-700 text-white text-xs font-bold flex items-center justify-center shadow-sm">
+                    {initials}
+                  </span>
+                )}
                 <span className="hidden sm:block text-left">
                   <span className="block text-xs font-bold text-text leading-tight">{user.fullName}</span>
                   <span className="block text-[10px] text-text-muted">{user.roleName}</span>
@@ -440,9 +448,13 @@ export default function AppShell() {
                 <div className="absolute right-0 mt-2 w-60 card shadow-2xl z-50 overflow-hidden animate-fade-in">
                   <div className="px-4 py-3.5 border-b border-border bg-gradient-to-r from-sky-50 to-blue-50 dark:from-surface-alt dark:to-surface">
                     <div className="flex items-center gap-3">
-                      <span className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-500 to-blue-700 text-white text-sm font-bold flex items-center justify-center shadow-md">
-                        {initials}
-                      </span>
+                      {profilePhotoUrl ? (
+                        <img src={profilePhotoUrl} alt={user.fullName} className="w-10 h-10 rounded-full object-cover shadow-md" />
+                      ) : (
+                        <span className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-500 to-blue-700 text-white text-sm font-bold flex items-center justify-center shadow-md">
+                          {initials}
+                        </span>
+                      )}
                       <div>
                         <p className="text-sm font-bold text-text">{user.fullName}</p>
                         <p className="text-[11px] text-text-muted">{user.email}</p>

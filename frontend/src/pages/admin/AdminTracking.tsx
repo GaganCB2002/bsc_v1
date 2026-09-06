@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Satellite, MapPin, Battery, RefreshCw, Radio, Plus, Trash2, Key, ShieldCheck } from 'lucide-react'
+import { Satellite, MapPin, Battery, RefreshCw, Radio, Plus, Trash2, Key, ShieldCheck, Navigation } from 'lucide-react'
 import { get, post, del } from '../../lib/api'
 import { Spinner, ErrorState, PageHeader } from '../../components/States'
 import Modal from '../../components/Modal'
@@ -20,6 +20,7 @@ interface TrackUser {
   batteryLevel: number | null
   trackedAt: string | null
   online: boolean
+  profileImage: string | null
 }
 
 interface Office {
@@ -50,6 +51,8 @@ export default function AdminTracking() {
   const [codeUserId, setCodeUserId] = useState('')
   const [codeLocationId, setCodeLocationId] = useState('')
   const [savingCode, setSavingCode] = useState(false)
+  const [adminLocation, setAdminLocation] = useState<{ latitude: number; longitude: number } | null>(null)
+  const [selectedMapUser, setSelectedMapUser] = useState<MapMarker | null>(null)
 
   const load = () => {
     setLoading(true)
@@ -71,6 +74,17 @@ export default function AdminTracking() {
     get<{ codes: typeof admittanceCodes }>('/api/admin/admittance-codes')
       .then((d) => setAdmittanceCodes(d.codes))
       .catch(() => {})
+  }, [])
+
+  // Get admin's own location for distance calculation
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setAdminLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+        () => {},
+        { enableHighAccuracy: true, timeout: 10000 }
+      )
+    }
   }, [])
 
   const openHistory = async (u: TrackUser) => {
@@ -168,6 +182,11 @@ export default function AdminTracking() {
         online: u.online,
         role: u.roleName,
         address: u.address,
+        profileImage: u.profileImage,
+        employeeCode: u.employeeCode,
+        departmentName: u.departmentName,
+        batteryLevel: u.batteryLevel,
+        accuracy: u.accuracy,
       })),
   ]
   const onlineCount = (data?.users || []).filter((u) => u.online).length
@@ -192,7 +211,13 @@ export default function AdminTracking() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         {/* Map */}
         <div className="xl:col-span-2 card p-2 h-[520px]">
-          <LiveMap markers={markers} center={[19.1, 72.89]} zoom={9} />
+          <LiveMap
+            markers={markers}
+            center={[19.1, 72.89]}
+            zoom={9}
+            showDistanceFrom={adminLocation}
+            onMarkerClick={(m) => setSelectedMapUser(m)}
+          />
         </div>
 
         {/* User list */}
@@ -204,35 +229,56 @@ export default function AdminTracking() {
           </div>
           <div className="flex-1 overflow-y-auto divide-y divide-border-light">
             {(data?.users || []).map((u) => (
-              <button key={u.userId} onClick={() => void openHistory(u)} className="w-full text-left px-5 py-3.5 hover:bg-primary-faint transition-colors">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-bold text-text truncate">{u.fullName}</p>
-                  <span className={`flex items-center gap-1 text-[10px] font-bold shrink-0 ${u.online ? 'text-success' : 'text-text-muted'}`}>
-                    <Radio className="w-3 h-3" /> {u.online ? 'ONLINE' : timeAgo(u.trackedAt)}
-                  </span>
-                </div>
-                <p className="text-[11px] text-text-muted mt-0.5">
-                  {u.roleName}{u.departmentName ? ` · ${u.departmentName}` : ''} · {u.employeeCode}
-                </p>
-                {(() => {
-                  const ac = admittanceCodes.find((c) => c.user_id === u.userId && c.is_active)
-                  if (!ac) return null
-                  return (
-                    <p className="text-[10px] text-primary-deep mt-1 flex items-center gap-1.5 font-mono font-bold">
-                      <Key className="w-3 h-3" /> {ac.admittance_code} — {ac.location_name}
+              <div key={u.userId} className="px-5 py-3.5 hover:bg-primary-faint transition-colors">
+                <div className="flex items-center gap-3 cursor-pointer" onClick={() => void openHistory(u)}>
+                  {u.profileImage ? (
+                    <img src={u.profileImage.startsWith('http') ? u.profileImage : u.profileImage} alt={u.fullName} className="w-9 h-9 rounded-full object-cover border-2 border-white shadow-sm shrink-0" />
+                  ) : (
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 ${u.online ? 'bg-green-500' : 'bg-gray-400'}`}>
+                      {u.fullName.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase()}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs font-bold text-text truncate">{u.fullName}</p>
+                      <span className={`flex items-center gap-1 text-[10px] font-bold shrink-0 ${u.online ? 'text-success' : 'text-text-muted'}`}>
+                        <Radio className="w-3 h-3" /> {u.online ? 'ONLINE' : timeAgo(u.trackedAt)}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-text-muted mt-0.5">
+                      {u.roleName}{u.departmentName ? ` · ${u.departmentName}` : ''} · {u.employeeCode}
                     </p>
-                  )
-                })()}
-                <p className="text-[11px] text-text-secondary mt-1 flex items-center gap-1.5">
-                  <MapPin className="w-3 h-3 text-primary shrink-0" />
-                  {u.latitude ? `${u.latitude.toFixed(5)}, ${u.longitude?.toFixed(5)}` : 'No location reported yet'}
-                </p>
-                {u.batteryLevel !== null && (
-                  <p className="text-[10px] text-text-muted mt-0.5 flex items-center gap-1">
-                    <Battery className="w-3 h-3" /> {Math.round(u.batteryLevel)}% battery
-                  </p>
+                    {(() => {
+                      const ac = admittanceCodes.find((c) => c.user_id === u.userId && c.is_active)
+                      if (!ac) return null
+                      return (
+                        <p className="text-[10px] text-primary-deep mt-1 flex items-center gap-1.5 font-mono font-bold">
+                          <Key className="w-3 h-3" /> {ac.admittance_code} — {ac.location_name}
+                        </p>
+                      )
+                    })()}
+                    <p className="text-[11px] text-text-secondary mt-1 flex items-center gap-1.5">
+                      <MapPin className="w-3 h-3 text-primary shrink-0" />
+                      {u.latitude ? `${u.latitude.toFixed(5)}, ${u.longitude?.toFixed(5)}` : 'No location reported yet'}
+                    </p>
+                    {u.batteryLevel !== null && (
+                      <p className="text-[10px] text-text-muted mt-0.5 flex items-center gap-1">
+                        <Battery className="w-3 h-3" /> {Math.round(u.batteryLevel)}% battery
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {u.latitude && u.longitude && (
+                  <button
+                    onClick={() => {
+                      window.open(`https://www.google.com/maps/dir/?api=1&destination=${u.latitude},${u.longitude}&travelmode=driving`, '_blank')
+                    }}
+                    className="mt-2 ml-12 inline-flex items-center gap-1.5 text-[10px] font-bold text-primary hover:text-primary-deep bg-primary-faint px-2 py-1 rounded-md transition-colors"
+                  >
+                    <Navigation className="w-3 h-3" /> Navigate
+                  </button>
                 )}
-              </button>
+              </div>
             ))}
             {(data?.users || []).length === 0 && (
               <p className="px-5 py-8 text-center text-xs text-text-muted">No tracked users yet.</p>
