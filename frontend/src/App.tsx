@@ -1,11 +1,11 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { useAuth } from './lib/auth'
 import AppShell from './components/AppShell'
 import { Spinner } from './components/States'
+import ErrorBoundary from './components/ErrorBoundary'
 
-// Route-level code splitting: each page loads only when visited
 const Landing = lazy(() => import('./pages/Landing'))
 const Login = lazy(() => import('./pages/Login'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
@@ -48,6 +48,29 @@ function PageLoader() {
   )
 }
 
+function OfflineBanner() {
+  const [online, setOnline] = useState(navigator.onLine)
+
+  useEffect(() => {
+    const handleOnline = () => setOnline(true)
+    const handleOffline = () => setOnline(false)
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
+
+  if (online) return null
+
+  return (
+    <div className="fixed top-0 left-0 right-0 z-[99999] bg-amber-500 text-white text-center py-2 px-4 text-xs font-semibold shadow-lg">
+      You are currently offline. Some features may be unavailable.
+    </div>
+  )
+}
+
 const Lazy = ({ children }: { children: ReactNode }) => (
   <Suspense fallback={<PageLoader />}>{children}</Suspense>
 )
@@ -71,75 +94,78 @@ function Protected({ children, roles }: { children: ReactNode; roles?: string[] 
 
 export default function App() {
   return (
-    <Lazy>
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
-
-      <Route
-        element={
-          <Protected>
-            <AppShell />
-          </Protected>
-        }
-      >
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/modules" element={<Modules />} />
-        <Route path="/modules/:slug" element={<ModuleDetail />} />
-        <Route path="/checkpoints/:id" element={<CheckpointDetail />} />
-        <Route path="/history" element={<History />} />
-        <Route path="/reports" element={<Reports />} />
-        <Route path="/calendar" element={<CalendarPage />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/chat" element={<Chat />} />
-        <Route path="/chat/:conversationId" element={<Chat />} />
-        <Route path="/whatsapp" element={<WhatsAppSection />} />
+    <ErrorBoundary>
+      <OfflineBanner />
+      <Lazy>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
 
         <Route
-          path="/admin"
           element={
-            <Protected roles={['ADMIN']}>
-              <Outlet />
+            <Protected>
+              <AppShell />
             </Protected>
           }
         >
-          <Route index element={<AdminDashboard />} />
-          <Route path="tracking" element={<AdminTracking />} />
-          <Route path="users" element={<AdminUsers />} />
-          <Route path="roles" element={<AdminRoles />} />
-          <Route path="departments" element={<AdminDepartments />} />
-          <Route path="modules" element={<AdminModules />} />
-          <Route path="checkpoints" element={<AdminCheckpoints />} />
-          <Route path="assignments" element={<AdminAssignments />} />
-          <Route path="submissions" element={<AdminSubmissions />} />
-          <Route path="evidence" element={<AdminEvidence />} />
-          <Route path="reports" element={<AdminReports />} />
-          <Route path="audit-logs" element={<AdminAuditLogs />} />
-          <Route path="settings" element={<AdminSettings />} />
-          <Route path="whatsapp" element={<WhatsAppSection />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/modules" element={<Modules />} />
+          <Route path="/modules/:slug" element={<ModuleDetail />} />
+          <Route path="/checkpoints/:id" element={<CheckpointDetail />} />
+          <Route path="/history" element={<History />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/chat" element={<Chat />} />
+          <Route path="/chat/:conversationId" element={<Chat />} />
+          <Route path="/whatsapp" element={<WhatsAppSection />} />
+
+          <Route
+            path="/admin"
+            element={
+              <Protected roles={['ADMIN']}>
+                <Outlet />
+              </Protected>
+            }
+          >
+            <Route index element={<AdminDashboard />} />
+            <Route path="tracking" element={<AdminTracking />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="roles" element={<AdminRoles />} />
+            <Route path="departments" element={<AdminDepartments />} />
+            <Route path="modules" element={<AdminModules />} />
+            <Route path="checkpoints" element={<AdminCheckpoints />} />
+            <Route path="assignments" element={<AdminAssignments />} />
+            <Route path="submissions" element={<AdminSubmissions />} />
+            <Route path="evidence" element={<AdminEvidence />} />
+            <Route path="reports" element={<AdminReports />} />
+            <Route path="audit-logs" element={<AdminAuditLogs />} />
+            <Route path="settings" element={<AdminSettings />} />
+            <Route path="whatsapp" element={<WhatsAppSection />} />
+          </Route>
+
+          <Route
+            path="/supervisor"
+            element={
+              <Protected roles={['SUPERVISOR', 'MANAGER', 'ADMIN']}>
+                <Outlet />
+              </Protected>
+            }
+          >
+            <Route index element={<SupervisorDashboard />} />
+            <Route path="approvals" element={<SupervisorApprovals />} />
+            <Route path="departments" element={<SupervisorDepartments />} />
+            <Route path="employees" element={<SupervisorEmployees />} />
+            <Route path="projects" element={<SupervisorProjects />} />
+            <Route path="activity" element={<SupervisorActivity />} />
+            <Route path="profile" element={<SupervisorProfile />} />
+            <Route path="reports" element={<SupervisorReports />} />
+          </Route>
         </Route>
 
-        <Route
-          path="/supervisor"
-          element={
-            <Protected roles={['SUPERVISOR', 'MANAGER', 'ADMIN']}>
-              <Outlet />
-            </Protected>
-          }
-        >
-          <Route index element={<SupervisorDashboard />} />
-          <Route path="approvals" element={<SupervisorApprovals />} />
-          <Route path="departments" element={<SupervisorDepartments />} />
-          <Route path="employees" element={<SupervisorEmployees />} />
-          <Route path="projects" element={<SupervisorProjects />} />
-          <Route path="activity" element={<SupervisorActivity />} />
-          <Route path="profile" element={<SupervisorProfile />} />
-          <Route path="reports" element={<SupervisorReports />} />
-        </Route>
-      </Route>
-
-      <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Lazy>
+        <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Lazy>
+    </ErrorBoundary>
   )
 }

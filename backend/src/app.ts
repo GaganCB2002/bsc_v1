@@ -23,6 +23,10 @@ import searchRoutes from './routes/search.routes.js'
 import whatsappRoutes from './routes/whatsapp.routes.js'
 import { ping } from './db.js'
 import { apiRateLimiter } from './middleware/rateLimit.js'
+import { getHealthCheck } from './lib/healthCheck.js'
+import { dbCircuit } from './lib/circuitBreaker.js'
+import { apiQueue } from './lib/requestQueue.js'
+import { isServerShuttingDown } from './lib/gracefulShutdown.js'
 
 fs.mkdirSync(config.uploadDir, { recursive: true })
 
@@ -30,22 +34,31 @@ export function createApp() {
   const app = express()
 
   app.set('trust proxy', 1)
-  app.use(compression())
+
+  app.use(compression({
+    level: 6,
+    threshold: 1024,
+    filter: (req, res) => {
+      if (req.headers['x-no-compression']) return false
+      return compression.filter(req, res)
+    },
+  }))
+
   app.use(
     cors({
       origin: (origin, cb) => {
-        // Allow same-origin requests and any configured frontend origin
         if (!origin || config.corsOrigins.includes(origin)) return cb(null, true)
         return cb(null, false)
       },
       credentials: true,
+      maxAge: 86400,
     })
   )
+
   app.use(express.json({ limit: '2mb' }))
   app.use(express.urlencoded({ extended: true }))
   app.use(cookieParser())
 
-  // Serve locally-stored evidence files (supabase mode serves via redirect)
   app.use(
     '/uploads',
     express.static(config.uploadDir, {
@@ -55,14 +68,76 @@ export function createApp() {
     })
   )
 
-  app.get('/api/health', async (_req, res) => {
-    const dbOk = await ping()
-    res.json({ status: dbOk ? 'ok' : 'degraded', database: dbOk, uptime: process.uptime() })
+  // ── Pre-flight shutdown check ──────────────────────────────
+  app.use((_req, res, next) => {
+    if (isServerShuttingDown()) {
+      res.setHeader('Connection', 'close')
+      return res.status(503).json({
+        success: false,
+        message: 'Server is shutting down. Please retry.',
+        code: 'SERVER_SHUTTING_DOWN',
+      })
+    }
+    next()
   })
 
-  // Global rate limiter for API routes (protects against scrapers and DDoS)
+  // ── Request queue backpressure ─────────────────────────────
+  app.use('/api', async (_req, res, next) => {
+    try {
+      await apiQueue.acquire()
+      res.on('finish', () => apiQueue.release())
+      res.on('close', () => apiQueue.release())
+      next()
+    } catch (err: any) {
+      if (err.message === 'SERVER_OVERLOADED') {
+        return res.status(503).json({
+          success: false,
+          message: 'Server is temporarily overloaded. Please retry in a few seconds.',
+          code: 'SERVER_OVERLOADED',
+          retryAfter: 5,
+        })
+      }
+      if (err.message === 'QUEUE_TIMEOUT') {
+        return res.status(504).json({
+          success: false,
+          message: 'Request timed out waiting for server capacity.',
+          code: 'QUEUE_TIMEOUT',
+        })
+      }
+      next(err)
+    }
+  })
+
+  // ── Health endpoints ───────────────────────────────────────
+  app.get('/api/health', async (_req, res) => {
+    const dbOk = await ping()
+    const health = getHealthCheck()
+    health.status = dbOk ? 'ok' : 'degraded'
+    health.database.circuitBreaker = dbCircuit.getStats()
+    const statusCode = health.status === 'ok' ? 200 : 503
+    res.status(statusCode).json(health)
+  })
+
+  app.get('/api/health/ready', async (_req, res) => {
+    const dbOk = await ping()
+    const queueStats = apiQueue.getStats()
+    const ready = dbOk && !dbCircuit.isOpen() && queueStats.queued < queueStats.maxQueue * 0.8
+    res.status(ready ? 200 : 503).json({
+      ready,
+      database: dbOk,
+      circuitBreaker: dbCircuit.isOpen() ? 'open' : 'closed',
+      queue: queueStats,
+    })
+  })
+
+  app.get('/api/health/live', (_req, res) => {
+    res.json({ alive: true, uptime: process.uptime(), pid: process.pid })
+  })
+
+  // ── Global rate limiter ────────────────────────────────────
   app.use('/api', apiRateLimiter)
 
+  // ── Routes ─────────────────────────────────────────────────
   app.use('/api/auth', authRoutes)
   app.use('/api/public', publicRoutes)
   app.use('/api/dashboard', dashboardRoutes)

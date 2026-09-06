@@ -6,25 +6,28 @@ interface RateLimitOptions {
   max: number
   message?: string
   keyGenerator?: (req: Request) => string
+  skipSuccessfulRequests?: boolean
 }
 
-interface ClientRecord {
-  count: number
-  resetTime: number
+interface SlidingWindowRecord {
+  timestamps: number[]
 }
 
-// In-memory store for rate limiting
-const store = new Map<string, ClientRecord>()
+const store = new Map<string, SlidingWindowRecord>()
 
-// Cleanup stale entries every 5 minutes
 setInterval(() => {
   const now = Date.now()
   for (const [key, record] of store.entries()) {
-    if (now > record.resetTime) {
+    record.timestamps = record.timestamps.filter((t) => now - t < 120_000)
+    if (record.timestamps.length === 0) {
       store.delete(key)
     }
   }
-}, 5 * 60 * 1000)
+}, 60_000)
+
+function getStoreSize(): number {
+  return store.size
+}
 
 export function rateLimit(options: RateLimitOptions) {
   const {
@@ -35,63 +38,72 @@ export function rateLimit(options: RateLimitOptions) {
   } = options
 
   return (req: Request, res: Response, next: NextFunction) => {
-    const key = `${req.baseUrl || ''}:${req.path}:${keyGenerator(req)}`
-    const now = Date.now()
-
-    let record = store.get(key)
-    if (!record || now > record.resetTime) {
-      record = {
-        count: 1,
-        resetTime: now + windowMs,
+    if (getStoreSize() > 100_000) {
+      console.warn('[rate-limit] Store size > 100k, aggressive cleanup')
+      const now = Date.now()
+      for (const [key, record] of store.entries()) {
+        record.timestamps = record.timestamps.filter((t) => now - t < windowMs)
+        if (record.timestamps.length === 0) store.delete(key)
       }
-      store.set(key, record)
-    } else {
-      record.count += 1
     }
 
-    const remaining = Math.max(0, max - record.count)
-    const resetSeconds = Math.ceil((record.resetTime - now) / 1000)
+    const key = `${req.baseUrl || ''}:${keyGenerator(req)}`
+    const now = Date.now()
+    const windowStart = now - windowMs
+
+    let record = store.get(key)
+    if (!record) {
+      record = { timestamps: [] }
+      store.set(key, record)
+    }
+
+    record.timestamps = record.timestamps.filter((t) => t > windowStart)
+
+    const count = record.timestamps.length
+    const remaining = Math.max(0, max - count)
+    const oldestInWindow = record.timestamps[0] || now
+    const resetSeconds = Math.ceil((oldestInWindow + windowMs - now) / 1000)
 
     res.setHeader('RateLimit-Limit', max)
     res.setHeader('RateLimit-Remaining', remaining)
-    res.setHeader('RateLimit-Reset', resetSeconds)
+    res.setHeader('RateLimit-Reset', Math.max(0, resetSeconds))
 
-    if (record.count > max) {
-      res.setHeader('Retry-After', resetSeconds)
+    if (count >= max) {
+      res.setHeader('Retry-After', Math.max(0, resetSeconds))
       return fail(res, 429, message, 'RATE_LIMIT_EXCEEDED')
     }
 
+    record.timestamps.push(now)
     next()
   }
 }
 
-// ------------------------------------------------------------
-// Preset Limiters
-// ------------------------------------------------------------
-
-// General API: 300 requests per minute
 export const apiRateLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 300,
+  windowMs: 60_000,
+  max: parseInt(process.env.API_RATE_LIMIT || '0', 10) || 500,
   message: 'Too many API requests from this IP. Please slow down.',
 })
 
-// Auth endpoints: 15 requests per minute
 export const authRateLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 15,
+  windowMs: 60_000,
+  max: parseInt(process.env.AUTH_RATE_LIMIT || '0', 10) || 20,
   message: 'Too many authentication attempts. Please try again shortly.',
 })
 
-// Submissions/Uploads: 60 requests per minute
 export const uploadRateLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 60,
-  message: 'Upload rate limit reached. Please wait a moment before sending more files.',
+  windowMs: 60_000,
+  max: parseInt(process.env.UPLOAD_RATE_LIMIT || '0', 10) || 100,
+  message: 'Upload rate limit reached. Please wait before sending more files.',
+})
+
+export const loginRateLimiter = rateLimit({
+  windowMs: 60_000,
+  max: parseInt(process.env.LOGIN_RATE_LIMIT || '0', 10) || 30,
+  message: 'Too many login requests from this IP.',
 })
 
 // ------------------------------------------------------------
-// Login Account Lockout (5 attempts, 5 minute lockout)
+// Login Account Lockout (5 attempts, 15 minute lockout)
 // ------------------------------------------------------------
 
 interface LoginAttemptRecord {
@@ -103,7 +115,16 @@ interface LoginAttemptRecord {
 const loginAttempts = new Map<string, LoginAttemptRecord>()
 
 const MAX_LOGIN_ATTEMPTS = 5
-const LOCKOUT_DURATION_MS = 15 * 60 * 1000 // 15 minutes
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000
+
+setInterval(() => {
+  const now = Date.now()
+  for (const [key, record] of loginAttempts.entries()) {
+    if (record.lockoutUntil && now >= record.lockoutUntil) {
+      loginAttempts.delete(key)
+    }
+  }
+}, 60_000)
 
 function getLoginKey(username: string, ip: string): string {
   return `${username.toLowerCase().trim()}:${ip}`
@@ -118,19 +139,15 @@ export function checkLoginLockout(username: string, ip: string): {
   const record = loginAttempts.get(key)
   const now = Date.now()
 
-  if (!record) {
-    return { locked: false, remainingSec: 0, attempts: 0 }
-  }
+  if (!record) return { locked: false, remainingSec: 0, attempts: 0 }
 
-  // If lockout expired, reset
   if (record.lockoutUntil && now >= record.lockoutUntil) {
     loginAttempts.delete(key)
     return { locked: false, remainingSec: 0, attempts: 0 }
   }
 
   if (record.lockoutUntil && now < record.lockoutUntil) {
-    const remainingSec = Math.ceil((record.lockoutUntil - now) / 1000)
-    return { locked: true, remainingSec, attempts: record.failedAttempts }
+    return { locked: true, remainingSec: Math.ceil((record.lockoutUntil - now) / 1000), attempts: record.failedAttempts }
   }
 
   return { locked: false, remainingSec: 0, attempts: record.failedAttempts }
@@ -148,38 +165,22 @@ export function unlockUser(username: string): void {
 export function recordFailedAttempt(
   username: string,
   ip: string
-): {
-  locked: boolean
-  remainingAttempts: number
-  lockoutSec: number
-} {
+): { locked: boolean; remainingAttempts: number; lockoutSec: number } {
   const key = getLoginKey(username, ip)
   const now = Date.now()
   let record = loginAttempts.get(key)
 
   if (!record) {
-    record = {
-      failedAttempts: 1,
-      lockoutUntil: null,
-      firstAttemptAt: now,
-    }
+    record = { failedAttempts: 1, lockoutUntil: null, firstAttemptAt: now }
     loginAttempts.set(key, record)
-    return {
-      locked: false,
-      remainingAttempts: MAX_LOGIN_ATTEMPTS - 1,
-      lockoutSec: 0,
-    }
+    return { locked: false, remainingAttempts: MAX_LOGIN_ATTEMPTS - 1, lockoutSec: 0 }
   }
 
   record.failedAttempts += 1
 
   if (record.failedAttempts >= MAX_LOGIN_ATTEMPTS) {
     record.lockoutUntil = now + LOCKOUT_DURATION_MS
-    return {
-      locked: true,
-      remainingAttempts: 0,
-      lockoutSec: Math.ceil(LOCKOUT_DURATION_MS / 1000),
-    }
+    return { locked: true, remainingAttempts: 0, lockoutSec: Math.ceil(LOCKOUT_DURATION_MS / 1000) }
   }
 
   return {
@@ -190,6 +191,5 @@ export function recordFailedAttempt(
 }
 
 export function resetFailedAttempts(username: string, ip: string): void {
-  const key = getLoginKey(username, ip)
-  loginAttempts.delete(key)
+  loginAttempts.delete(getLoginKey(username, ip))
 }
