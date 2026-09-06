@@ -21,6 +21,7 @@ import {
 import { get } from '../lib/api'
 import { useTheme } from '../lib/theme'
 import ThemeToggle from '../components/ThemeToggle'
+import Chatbot from '../components/Chatbot'
 
 interface Stats {
   modules: number
@@ -321,6 +322,9 @@ export default function Landing() {
           </div>
         </div>
       </footer>
+
+      {/* ── AI Chatbot ──────────────────────────────────────── */}
+      <Chatbot />
 
       {/* ── Policy Modal ────────────────────────────────────── */}
       {policyModal && (

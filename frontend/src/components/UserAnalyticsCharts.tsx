@@ -5,6 +5,7 @@ import {
 } from 'recharts'
 import { Users, UserCheck, ShieldAlert, UserPlus } from 'lucide-react'
 import { get } from '../lib/api'
+import { useChartTheme } from '../lib/chartTheme'
 
 interface AnalyticsData {
   totals: {
@@ -27,6 +28,7 @@ const COLORS = ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'
 export default function UserAnalyticsCharts() {
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
+  const chart = useChartTheme()
 
   useEffect(() => {
     get<AnalyticsData>('/api/admin/user-analytics')
@@ -38,12 +40,12 @@ export default function UserAnalyticsCharts() {
   if (loading || !data) {
     return (
       <div className="card p-6 mb-6 animate-pulse">
-        <div className="h-4 bg-slate-200 rounded w-1/4 mb-4"></div>
+        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/4 mb-4"></div>
         <div className="grid grid-cols-4 gap-4">
-          <div className="h-20 bg-slate-100 rounded"></div>
-          <div className="h-20 bg-slate-100 rounded"></div>
-          <div className="h-20 bg-slate-100 rounded"></div>
-          <div className="h-20 bg-slate-100 rounded"></div>
+          <div className="h-20 bg-slate-100 dark:bg-slate-800 rounded"></div>
+          <div className="h-20 bg-slate-100 dark:bg-slate-800 rounded"></div>
+          <div className="h-20 bg-slate-100 dark:bg-slate-800 rounded"></div>
+          <div className="h-20 bg-slate-100 dark:bg-slate-800 rounded"></div>
         </div>
       </div>
     )
@@ -56,53 +58,61 @@ export default function UserAnalyticsCharts() {
     { name: 'Customer Accounts', value: totals.customer_accounts || (totals.total_customers_directory || 0) },
   ]
 
+  const tooltipStyle = {
+    backgroundColor: chart.tooltipBg,
+    borderRadius: '8px',
+    color: chart.tooltipText,
+    fontSize: '11px',
+    border: `1px solid ${chart.tooltipBorder}`,
+  }
+
   return (
     <div className="space-y-4 mb-6">
       {/* Top 4 KPI metric cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="card p-3.5 flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600">
+          <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
             <Users className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[11px] text-slate-500 font-medium">Total Accounts</p>
-            <p className="text-lg font-bold text-slate-900">{totals.total_users}</p>
-            <p className="text-[10px] text-slate-400">{totals.bsc_users} BSC • {totals.customer_accounts} Customers</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Total Accounts</p>
+            <p className="text-lg font-bold text-slate-900 dark:text-white">{totals.total_users}</p>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500">{totals.bsc_users} BSC • {totals.customer_accounts} Customers</p>
           </div>
         </div>
 
         <div className="card p-3.5 flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600">
+          <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
             <UserCheck className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[11px] text-slate-500 font-medium">Active Accounts</p>
-            <p className="text-lg font-bold text-emerald-700">{totals.active_count}</p>
-            <p className="text-[10px] text-emerald-600">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Active Accounts</p>
+            <p className="text-lg font-bold text-emerald-700 dark:text-emerald-400">{totals.active_count}</p>
+            <p className="text-[10px] text-emerald-600 dark:text-emerald-500">
               {totals.total_users > 0 ? Math.round((totals.active_count / totals.total_users) * 100) : 100}% Active rate
             </p>
           </div>
         </div>
 
         <div className="card p-3.5 flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-amber-50 text-amber-600">
+          <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
             <ShieldAlert className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[11px] text-slate-500 font-medium">Restricted / Suspended</p>
-            <p className="text-lg font-bold text-amber-700">{totals.suspended_count}</p>
-            <p className="text-[10px] text-slate-400">{totals.inactive_count} Inactive</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Restricted / Suspended</p>
+            <p className="text-lg font-bold text-amber-700 dark:text-amber-400">{totals.suspended_count}</p>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500">{totals.inactive_count} Inactive</p>
           </div>
         </div>
 
         <div className="card p-3.5 flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-purple-50 text-purple-600">
+          <div className="p-2.5 rounded-xl bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
             <UserPlus className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[11px] text-slate-500 font-medium">New This Month</p>
-            <p className="text-lg font-bold text-purple-700">{totals.new_this_month}</p>
-            <p className="text-[10px] text-slate-400">Created in last 30 days</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">New This Month</p>
+            <p className="text-lg font-bold text-purple-700 dark:text-purple-400">{totals.new_this_month}</p>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500">Created in last 30 days</p>
           </div>
         </div>
       </div>
@@ -111,7 +121,7 @@ export default function UserAnalyticsCharts() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Donut Chart: User Distribution */}
         <div className="card p-4">
-          <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+          <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
             User Account Distribution
           </h4>
           <div className="h-52">
@@ -130,15 +140,7 @@ export default function UserAnalyticsCharts() {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#1e293b',
-                    borderRadius: '8px',
-                    color: '#fff',
-                    fontSize: '11px',
-                    border: 'none',
-                  }}
-                />
+                <Tooltip contentStyle={tooltipStyle} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -146,7 +148,7 @@ export default function UserAnalyticsCharts() {
             {pieData.map((d, i) => (
               <div key={d.name} className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[i] }}></span>
-                <span className="text-slate-600 text-[11px] font-medium">{d.name} ({d.value})</span>
+                <span className="text-slate-600 dark:text-slate-400 text-[11px] font-medium">{d.name} ({d.value})</span>
               </div>
             ))}
           </div>
@@ -154,24 +156,16 @@ export default function UserAnalyticsCharts() {
 
         {/* Bar Chart: Users by Department */}
         <div className="card p-4">
-          <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+          <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
             Users by Department
           </h4>
           <div className="h-52">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={departmentBreakdown.slice(0, 5)} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="department_name" tick={{ fontSize: 9 }} angle={-20} textAnchor="end" />
-                <YAxis tick={{ fontSize: 9 }} allowDecimals={false} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#1e293b',
-                    borderRadius: '8px',
-                    color: '#fff',
-                    fontSize: '11px',
-                    border: 'none',
-                  }}
-                />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chart.gridColor} />
+                <XAxis dataKey="department_name" tick={{ fontSize: 9, fill: chart.textColor }} angle={-20} textAnchor="end" axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 9, fill: chart.textColor }} allowDecimals={false} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={tooltipStyle} />
                 <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Users" />
               </BarChart>
             </ResponsiveContainer>
@@ -180,7 +174,7 @@ export default function UserAnalyticsCharts() {
 
         {/* Area Chart: Registration Trend */}
         <div className="card p-4">
-          <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+          <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
             Registration Trend (Last 14 Days)
           </h4>
           <div className="h-52">
@@ -192,18 +186,10 @@ export default function UserAnalyticsCharts() {
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0.0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="label" tick={{ fontSize: 9 }} />
-                <YAxis tick={{ fontSize: 9 }} allowDecimals={false} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#1e293b',
-                    borderRadius: '8px',
-                    color: '#fff',
-                    fontSize: '11px',
-                    border: 'none',
-                  }}
-                />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chart.gridColor} />
+                <XAxis dataKey="label" tick={{ fontSize: 9, fill: chart.textColor }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 9, fill: chart.textColor }} allowDecimals={false} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={tooltipStyle} />
                 <Area type="monotone" dataKey="users_count" stroke="#10b981" fillOpacity={1} fill="url(#userGrad)" name="New Users" />
               </AreaChart>
             </ResponsiveContainer>
